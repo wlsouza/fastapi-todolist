@@ -23,7 +23,7 @@ def init_tasks_list():
     TASKS.clear()
 
 
-
+#region testing "/tasks" (GET)
 def test_when_listing_tasks_returns_status_200(client):
     response = client.get("/tasks")
     assert response.status_code == status.HTTP_200_OK
@@ -59,3 +59,104 @@ def test_when_listing_tasks_the_returned_tasks_must_have_state(client, init_task
     response = client.get("/tasks")
     assert "state" in response.json().pop()
     # TASKS.clear()
+
+#endregion
+
+#region testing "/tasks" (POST)
+def test_resource_tasks_must_accept_post_verb(client):
+    response = client.post("/tasks")
+    assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
+
+def test_when_create_tasks_if_the_request_payload_doesnt_have_title_return_422(client):
+    payload = {
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.post("/tasks", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_create_tasks_the_title_must_have_more_than_2_characters(client):
+    payload = {
+        "title": "AA",
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.post("/tasks",json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_create_tasks_the_title_must_have_less_than_51_characters(client):
+    payload = {
+        "title": "A"*51,
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.post("/tasks",json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_create_tasks_if_the_request_payload_doesnt_have_description_return_422(client):
+    payload = {
+        "Title": "Testing",
+        "state": "not-done"
+    }
+    response = client.post("/tasks", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_create_tasks_the_description_must_have_less_than_141_characters(client):
+    payload = {
+        "title": "Testing",
+        "description": "A"*141,
+        "state": "not-done"
+    }
+    response = client.post("/tasks",json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_create_task_it_must_be_returned(client):
+    payload = {
+        "title": "Testing",
+        "description": "Testing the API",
+        "state": "not-done"
+    }
+    response = client.post("/tasks",json=payload)
+    assert payload.items() <= response.json().items() # the payload.items() is subset (is conteined) of response.json().items()
+
+def test_when_create_task_the_task_id_must_be_unique(client):
+    payload = {
+        "title": "Testing",
+        "description": "Testing the API",
+        "state": "not-done"
+    }
+    response1 = client.post("/tasks", json=payload)
+    response2 = client.post("/tasks", json=payload)
+    assert response1.json()["id"] != response2.json()["id"]
+
+def test_when_create_task_the_default_state_must_be_not_done(client):
+    payload = {
+        "title": "Testing",
+        "description": "Testing the API"
+    }
+    response = client.post("/tasks", json=payload)
+    assert response.json()["state"] == "not-done"
+
+def test_when_creat_a_task_with_success_the_status_must_be_201(client):
+    payload = {
+        "title": "Testing",
+        "description": "Testing the API",
+        "state": "not-done"
+    }
+    response = client.post("/tasks", json=payload)
+    assert response.status_code == status.HTTP_201_CREATED
+
+def test_when_create_task_it_must_be_persisted(client):
+    number_tasks_before = len(TASKS)
+    payload = {
+        "title": "Testing",
+        "description": "Testing the API",
+        "state": "done"
+    }
+    response = client.post("/tasks", json = payload)
+    # The code bellow was commented to maintain the test independent 
+    # response2 = client.get("/tasks", json = payload)
+    # assert any(response.json().items() <= task.items() for task in response2.json()) 
+    assert len(TASKS) == number_tasks_before+1
+
+#endregion
