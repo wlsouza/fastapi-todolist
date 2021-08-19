@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import status
+from pydantic import UUID4
 
 from task_manager.manager import app, TASKS
 
@@ -13,10 +14,10 @@ def get_client():
 def init_tasks_list():
     TASKS.clear()
     TASKS.append({
-        "id": 1,
+        "id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"),
         "title": "Take a shower",
         "description": "Take a shower to go to work.",
-        "state": "not-done",
+        "state": "not-done"
     })
     yield TASKS
     #teardown
@@ -37,28 +38,20 @@ def test_when_listing_tasks_returns_a_list(client):
     assert isinstance(response.json(), list)
 
 def test_when_listing_tasks_the_returned_tasks_must_have_id(client, init_tasks_list):
-    # TASKS.append({"id": 1})
     response = client.get("/tasks")
     assert "id" in response.json().pop()
-    # TASKS.clear()
 
 def test_when_listing_tasks_the_returned_tasks_must_have_title(client, init_tasks_list):
-    # TASKS.append({"title": "This is a title"})
     response = client.get("/tasks")
     assert "title" in response.json().pop()
-    # TASKS.clear()
 
 def test_when_listing_tasks_the_returned_tasks_must_have_description(client, init_tasks_list):
-    # TASKS.append({"description": "This is a valid description"})
     response = client.get("/tasks")
     assert "description" in response.json().pop()
-    # TASKS.clear()
 
 def test_when_listing_tasks_the_returned_tasks_must_have_state(client, init_tasks_list):
-    # TASKS.append({"state": "done"})
     response = client.get("/tasks")
     assert "state" in response.json().pop()
-    # TASKS.clear()
 
 #endregion
 
@@ -117,7 +110,7 @@ def test_when_create_task_it_must_be_returned(client):
         "state": "not-done"
     }
     response = client.post("/tasks",json=payload)
-    assert payload.items() <= response.json().items() # the payload.items() is subset (is conteined) of response.json().items()
+    assert payload.items() <= response.json().items() # the payload.items() is subset (it's contained) of response.json().items()
 
 def test_when_create_task_the_task_id_must_be_unique(client):
     payload = {
@@ -158,5 +151,25 @@ def test_when_create_task_it_must_be_persisted(client):
     # response2 = client.get("/tasks", json = payload)
     # assert any(response.json().items() <= task.items() for task in response2.json()) 
     assert len(TASKS) == number_tasks_before+1
+
+#endregion
+
+#region testing "/tasks/{id}" (DELETE)
+def test_resource_task_must_receive_delete_verb(client):
+    response = client.delete("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+    assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
+
+def test_when_delete_a_task_if_its_not_found_returns_404(client, init_tasks_list):
+    response = client.delete("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_when_delete_the_task_successfully_returns_204(client, init_tasks_list):
+    response = client.delete("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert response.status_code == status.HTTP_200_OK
+
+def test_when_delete_a_task_it_must_be_removed_from_tasks_repository(client, init_tasks_list):
+    client.delete("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert len(TASKS) == 0 
+
 
 #endregion
