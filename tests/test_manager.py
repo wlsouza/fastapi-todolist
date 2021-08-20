@@ -1,6 +1,8 @@
 import pytest
+
 from fastapi.testclient import TestClient
 from fastapi import status
+
 from pydantic import UUID4
 
 from task_manager.manager import app, TASKS
@@ -13,15 +15,19 @@ def get_client():
 @pytest.fixture
 def init_tasks_list():
     TASKS.clear()
-    TASKS.append({
-        "id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"),
-        "title": "Take a shower",
-        "description": "Take a shower to go to work.",
-        "state": "not-done"
-    })
+    TASKS.append(
+        {
+            "id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"),
+            "title": "Take a shower",
+            "description": "Take a shower to go to work.",
+            "state": "not-done"
+        }
+    )
     yield TASKS
     #teardown
     TASKS.clear()
+
+
 
 
 #region testing "/tasks" (GET)
@@ -52,6 +58,25 @@ def test_when_listing_tasks_the_returned_tasks_must_have_description(client, ini
 def test_when_listing_tasks_the_returned_tasks_must_have_state(client, init_tasks_list):
     response = client.get("/tasks")
     assert "state" in response.json().pop()
+
+def test_when_listing_tasks_the_returned_tasks_must_be_ordered_by_state_not_done_first(client, init_tasks_list):
+    expected = [
+        {
+        "id": "020f5896-4bfa-4017-8d83-19a6eb489895",
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+        },{
+        "id": "11455eca-8f56-403b-a257-485ee61a2d80",
+        "title": "Fuel the car",
+        "description": "fuel the car because it is out of gas.",
+        "state": "done",
+        }
+    ]
+    TASKS.clear()
+    TASKS.extend(expected[::-1])
+    response = client.get("/tasks")
+    assert response.json() == expected
 
 #endregion
 
@@ -168,8 +193,9 @@ def test_when_delete_the_task_successfully_returns_204(client, init_tasks_list):
     assert response.status_code == status.HTTP_200_OK
 
 def test_when_delete_a_task_it_must_be_removed_from_tasks_repository(client, init_tasks_list):
+    number_tasks_before = len(TASKS)
     client.delete("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
-    assert len(TASKS) == 0 
+    assert len(TASKS) == number_tasks_before -1
 
 
 #endregion

@@ -17,12 +17,12 @@ class TaskBase(BaseModel):
     state: TaskStates = TaskStates.not_done
 
 class Task(TaskBase):
-    id: Union[UUID4, int, str]
+    id: UUID4
 
 class TaskCreate(TaskBase):
     pass
 
-TASKS: list[dict[str, Union[int, str, UUID4, TaskStates]]] = [
+TASKS: list[dict[str, Union[str, UUID4, TaskStates]]] = [
     {
         "id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"),
         "title": "Take a shower",
@@ -43,6 +43,7 @@ TASKS: list[dict[str, Union[int, str, UUID4, TaskStates]]] = [
 
 @app.get("/tasks", response_model=list[Task])
 def list_tasks() -> Any:
+    TASKS.sort(reverse=True, key= lambda x: x["state"])
     return TASKS
 
 @app.post("/tasks", response_model=Task, status_code=status.HTTP_201_CREATED)
