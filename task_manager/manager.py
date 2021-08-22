@@ -3,6 +3,7 @@ from typing import Any, Union, Optional
 from uuid import uuid4
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel, constr, UUID4
+from starlette import responses
 
 app = FastAPI()
 
@@ -53,7 +54,7 @@ def create_task(task: TaskCreate) -> Any:
     TASKS.append(new_task)
     return new_task
 
-@app.delete("/tasks/{id}")
+@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT, responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
 def delete_task(id: UUID4):
     task = list(filter(lambda x: x.get("id") == id, TASKS))
     if not task:
@@ -62,3 +63,14 @@ def delete_task(id: UUID4):
             detail="Task not found"
         )
     TASKS.remove(task[0])
+    return None
+
+@app.put("/tasks/{id}", responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
+def update_task(id: UUID4):
+    task = list(filter(lambda x: x.get("id") == id, TASKS))
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+    return ""

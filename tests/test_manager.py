@@ -155,7 +155,7 @@ def test_when_create_task_the_default_state_must_be_not_done(client):
     response = client.post("/tasks", json=payload)
     assert response.json()["state"] == "not-done"
 
-def test_when_creat_a_task_with_success_the_status_must_be_201(client):
+def test_when_create_a_task_with_success_the_status_must_be_201(client):
     payload = {
         "title": "Testing",
         "description": "Testing the API",
@@ -190,12 +190,41 @@ def test_when_delete_a_task_if_its_not_found_returns_404(client, init_tasks_list
 
 def test_when_delete_the_task_successfully_returns_204(client, init_tasks_list):
     response = client.delete("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 def test_when_delete_a_task_it_must_be_removed_from_tasks_repository(client, init_tasks_list):
     number_tasks_before = len(TASKS)
     client.delete("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
     assert len(TASKS) == number_tasks_before -1
 
+#endregion
+
+#region testing "/tasks/{id}" (PUT)
+def test_resource_task_must_receive_put_verb(client):
+    response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+    assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
+
+def test_when_updating_a_task_if_its_not_found_returns_404(client):
+    response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_when_update_a_task_successfully_return_200(client):
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert response.status_code == status.HTTP_200_OK
+
+def test_when_create_task_it_must_be_returned(client):
+    pass
+
+def test_when_update_a_task_the_alterations_must_be_persisted():
+    pass
+
+def test_when_update_a_task_the_title_must_have_more_than_2_characters(client):
+    pass
+
+def test_when_update_a_task_the_title_must_have_less_than_51_characters(client):
+    pass
+
+def test_when_update_a_task_the_description_must_have_less_than_141_characters(client):
+    pass
 
 #endregion
