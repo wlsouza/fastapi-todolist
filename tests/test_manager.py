@@ -104,7 +104,7 @@ def test_when_create_tasks_the_title_must_have_more_than_2_characters(client):
 
 def test_when_create_tasks_the_title_must_have_less_than_51_characters(client):
     payload = {
-        "title": "A"*51,
+        "title": "A"*55,
         "description": "Take a shower to go to work.",
         "state": "not-done"
     }
@@ -200,31 +200,83 @@ def test_when_delete_a_task_it_must_be_removed_from_tasks_repository(client, ini
 #endregion
 
 #region testing "/tasks/{id}" (PUT)
-def test_resource_task_must_receive_put_verb(client):
+def test_resource_task_must_receive_put_verb(client, init_tasks_list):
     response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
     assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
 
-def test_when_updating_a_task_if_its_not_found_returns_404(client):
-    response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+def test_when_updating_a_task_if_its_not_found_returns_404(client, init_tasks_list):
+    payload = {
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88", json=payload)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-def test_when_update_a_task_successfully_return_200(client):
-    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+def test_when_update_a_task_successfully_return_200(client, init_tasks_list):
+    payload = {
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "done"
+    }
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
     assert response.status_code == status.HTTP_200_OK
 
-def test_when_create_task_it_must_be_returned(client):
-    pass
+def test_when_updating_task_if_the_received_payload_not_countain_all_necessary_task_data_must_return_422(client, init_tasks_list):
+    payload = {
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    
 
-def test_when_update_a_task_the_alterations_must_be_persisted():
-    pass
+def test_when_update_task_the_new_representation_of_that_must_be_returned(client, init_tasks_list):
+    payload = {
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "done"
+    }
+    expected = {"id": "020f5896-4bfa-4017-8d83-19a6eb489895", **payload}
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert response.json() == expected
 
-def test_when_update_a_task_the_title_must_have_more_than_2_characters(client):
-    pass
 
-def test_when_update_a_task_the_title_must_have_less_than_51_characters(client):
-    pass
+def test_when_update_a_task_the_alterations_must_be_persisted(client, init_tasks_list):
+    payload = {
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "done"
+    }
+    expected = {"id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"), **payload}
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert TASKS[0] == expected
 
-def test_when_update_a_task_the_description_must_have_less_than_141_characters(client):
-    pass
+def test_when_update_a_task_the_title_must_have_more_than_2_characters(client, init_tasks_list):
+    payload = {
+        "title": "AA",
+        "description": "Take a shower to go to work.",
+        "state": "done"
+    }
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_update_a_task_the_title_must_have_less_than_51_characters(client, init_tasks_list):
+    payload = {
+        "title": "A"*51,
+        "description": "Take a shower to go to work.",
+        "state": "done"
+    }
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_when_update_a_task_the_description_must_have_less_than_141_characters(client, init_tasks_list):
+    payload = {
+        "title": "Take a shower",
+        "description": "A"*141,
+        "state": "done"
+    }
+    response = client.put("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895", json=payload)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 #endregion

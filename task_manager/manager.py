@@ -23,6 +23,9 @@ class Task(TaskBase):
 class TaskCreate(TaskBase):
     pass
 
+class TaskUpdate(TaskBase):
+    pass
+
 TASKS: list[dict[str, Union[str, UUID4, TaskStates]]] = [
     {
         "id": UUID4("020f5896-4bfa-4017-8d83-19a6eb489895"),
@@ -54,7 +57,7 @@ def create_task(task: TaskCreate) -> Any:
     TASKS.append(new_task)
     return new_task
 
-@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT, responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
+@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT) #, responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
 def delete_task(id: UUID4):
     task = list(filter(lambda x: x.get("id") == id, TASKS))
     if not task:
@@ -65,12 +68,15 @@ def delete_task(id: UUID4):
     TASKS.remove(task[0])
     return None
 
-@app.put("/tasks/{id}", responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
-def update_task(id: UUID4):
-    task = list(filter(lambda x: x.get("id") == id, TASKS))
-    if not task:
+@app.put("/tasks/{id}", response_model=Task)
+def update_task(id: UUID4, received_task: TaskUpdate):
+    task_to_update = list(filter(lambda x: x.get("id") == id, TASKS))
+    if not task_to_update:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found"
         )
-    return ""
+    updated_task = task_to_update[0]
+    for attribute, value in received_task:
+        updated_task[attribute] = value
+    return updated_task
