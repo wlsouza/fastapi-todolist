@@ -180,7 +180,7 @@ def test_when_create_task_it_must_be_persisted(client):
 #endregion
 
 #region testing "/tasks/{id}" (DELETE)
-def test_resource_task_must_receive_delete_verb(client):
+def test_resource_task_id_must_receive_delete_verb(client):
     response = client.delete("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
     assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
 
@@ -200,7 +200,7 @@ def test_when_delete_a_task_it_must_be_removed_from_tasks_repository(client, ini
 #endregion
 
 #region testing "/tasks/{id}" (PUT)
-def test_resource_task_must_receive_put_verb(client, init_tasks_list):
+def test_resource_task_id_must_receive_put_verb(client, init_tasks_list):
     response = client.put("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
     assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
 
@@ -280,3 +280,31 @@ def test_when_update_a_task_the_description_must_have_less_than_141_characters(c
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 #endregion
+
+#region testing "/tasks/{id}" (GET)
+def test_resource_task_id_must_accept_post_verb(client):
+    response = client.get("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
+
+def test_when_successfully_get_a_task_by_id_returns_200(client, init_tasks_list):
+    response = client.get("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert response.status_code == status.HTTP_200_OK
+
+def test_when_getting_a_task_by_id_if_not_found_returns_404(client, init_tasks_list):
+    response = client.get("/tasks/58a7a73a-0055-4b9e-bbe9-9e1c1cbc4f88")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_when_successfully_get_a_task_by_id_returns_a_dict(client):
+    response = client.get("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert isinstance(response.json(), dict)
+
+def test_when_successfully_get_a_task_by_id_returns_a_representation_of_that_specific_task(client):
+    expected = {
+        "id": "020f5896-4bfa-4017-8d83-19a6eb489895",
+        "title": "Take a shower",
+        "description": "Take a shower to go to work.",
+        "state": "not-done"
+    }
+    response = client.get("/tasks/020f5896-4bfa-4017-8d83-19a6eb489895")
+    assert response.json() == expected
+#end region

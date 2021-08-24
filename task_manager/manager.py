@@ -80,3 +80,13 @@ def update_task(id: UUID4, received_task: TaskUpdate):
     for attribute, value in received_task:
         updated_task[attribute] = value
     return updated_task
+
+@app.get("/tasks/{id}")
+def get_task_id(id:UUID4):
+    task = list(filter(lambda x: x.get("id") == id, TASKS))
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+    return task[0]
