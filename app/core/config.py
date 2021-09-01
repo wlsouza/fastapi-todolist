@@ -1,5 +1,3 @@
-import secrets
-
 from pydantic import BaseSettings, PostgresDsn
 
 class Settings(BaseSettings):
