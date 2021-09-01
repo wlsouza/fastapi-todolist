@@ -3,28 +3,8 @@ from typing import Any, Union, Optional
 from uuid import uuid4
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel, constr, UUID4
-from starlette import responses
 
 app = FastAPI()
-
-
-class TaskStates(str, Enum):
-    done = "done"
-    not_done = "not-done"
-
-class TaskBase(BaseModel):
-    title: constr(min_length=3, max_length=50)
-    description: constr(max_length=140)
-    state: TaskStates = TaskStates.not_done
-
-class Task(TaskBase):
-    id: UUID4
-
-class TaskCreate(TaskBase):
-    pass
-
-class TaskUpdate(TaskBase):
-    pass
 
 TASKS: list[dict[str, Union[str, UUID4, TaskStates]]] = [
     {
