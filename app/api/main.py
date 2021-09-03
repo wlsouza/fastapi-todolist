@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Union, Optional
 from uuid import uuid4
 from fastapi import FastAPI, status, HTTPException
