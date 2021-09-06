@@ -1,5 +1,6 @@
-fastapi
+fastapi[all]
 uvicorn
 requests
 sqlalchemy
+psycopg2
 alembic
