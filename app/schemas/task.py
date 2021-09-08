@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, UUID4
+from pydantic import BaseModel, Field
 
 # Shared properties
 class TaskBase(BaseModel):
@@ -16,7 +16,7 @@ class TaskUpdate(TaskBase):
 
 # Properties shared by models stored in DB
 class TaskInDBBase():
-    external_id: UUID4
+    id: str
     title: str
     description: str
     is_done: bool
@@ -27,9 +27,7 @@ class TaskInDBBase():
 
 # Properties to return to client
 class Task(TaskInDBBase):
-    external_id: UUID4 = Field(alias="id")
-    is_done: bool = Field(alias="done")
-
+    pass
 
 # Properties properties stored in DB
 class TaskInDB(TaskInDBBase):
