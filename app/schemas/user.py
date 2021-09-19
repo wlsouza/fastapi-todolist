@@ -1,7 +1,8 @@
-from app.models.user import User
 from typing import Optional
+from pydantic import BaseModel, EmailStr
 
-from pydantic import BaseModel, EmailStr, SecretStr
+from app.models.user import User
+
 
 
 # Shared properties
@@ -16,12 +17,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     full_name: str
     email: EmailStr
-    password: SecretStr
+    password: str
 
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
-    password: Optional[SecretStr] = None
+    password: Optional[str] = None
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):
