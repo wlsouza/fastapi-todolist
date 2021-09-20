@@ -8,8 +8,8 @@ from app.core.security import get_password_hash
 
 class CrudUser():
 
-    def get_by_id(self, db:Session) -> Optional[User]:
-        pass
+    def get_by_id(self, db:Session, id:int) -> Optional[User]:
+        return db.query(User).filter(User.id == id).first()
 
     def get_multi_by_id(
         self, db:Session, skip:int=0, limit:int=100
@@ -17,7 +17,7 @@ class CrudUser():
         pass
 
     def get_by_email(self, db:Session, email:str) -> Optional[User]:
-        pass
+        return db.query(User).filter(User.email == email).first()
 
     def create(
         self, db:Session, user_in: Union[UserCreate, Dict[str, Any]]
@@ -41,8 +41,11 @@ class CrudUser():
     ) -> User:
         pass
 
-    def delete(self, db:Session, db_user:User) -> None:
-        pass
+    def delete_by_id(self, db:Session, id:int) -> Optional[User]:
+        user = self.get_by_id(db=db, id=id)
+        db.delete(user)
+        db.commit()
+        return user
 
     
 user = CrudUser()
