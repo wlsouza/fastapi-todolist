@@ -2,8 +2,8 @@ from app.crud import crud_user
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.schemas.user import UserCreate
-from app.tests.utils.user import random_user_dict
+from app.schemas.user import UserCreate, UserUpdate
+from app.tests.utils.user import fake, random_user_dict
 
 
 def test_create_user_by_schema(db: Session) -> None:
@@ -51,3 +51,17 @@ def test_if_delete_by_id_really_delete_the_user(db: Session):
     crud.user.delete_by_id(db=db, id=new_user.id)
     returned_user = crud.user.get_by_id(db=db, id=new_user.id)
     assert returned_user == None
+
+def test_update_user_by_userupdate_schema(db: Session) -> None:
+    user_dict = random_user_dict()
+    new_user = crud.user.create(db=db, user_in=user_dict)
+    user_update_in = UserUpdate(email=fake.free_email())
+    updated_user = crud.user.update(db=db, db_user=new_user, user_in=user_update_in)
+    assert updated_user.email == user_update_in.email
+
+def test_update_user_by_dict(db: Session) -> None:
+   user_dict = random_user_dict()
+   new_user = crud.user.create(db=db, user_in=user_dict)
+   user_update_in = {"email": fake.free_email()}
+   updated_user = crud.user.update(db=db, db_user=new_user, user_in=user_update_in)
+   assert updated_user.email == user_update_in["email"]
