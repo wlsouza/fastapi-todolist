@@ -9,9 +9,6 @@ from app.models.user import User
 class UserBase(BaseModel):
     full_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    is_active: Optional[bool] = True
-    is_superuser: bool = False
-    
 
 # Properties to receive via API on creation    
 class UserCreate(UserBase):
@@ -19,14 +16,18 @@ class UserCreate(UserBase):
     email: EmailStr
     password: str
 
-
 # Properties to receive via API on update
 class UserUpdate(UserBase):
     password: Optional[str] = None
+    is_active: Optional[bool] = True
+    is_superuser: bool = False
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):
     id: Optional[int]
+    is_active: Optional[bool] = True
+    is_superuser: bool = False
+
 
     class Config:
         orm_mode = True

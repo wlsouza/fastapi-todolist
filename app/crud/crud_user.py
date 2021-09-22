@@ -23,14 +23,13 @@ class CrudUser():
         self, db:Session, user_in: Union[UserCreate, Dict[str, Any]]
     ) -> User:
         if isinstance(user_in, dict):
-            user_in = UserCreate(**user_in)
-        db_user = User(
-            full_name= user_in.full_name, 
-            email= user_in.email,
-            hashed_password= get_password_hash(user_in.password),
-            is_active=user_in.is_active,
-            is_superuser=user_in.is_superuser
-        )
+            user_data = user_in.copy()
+        else:
+            user_data = user_in.dict(exclude_unset=True)
+        if user_data.get("password"):
+            hashed_password = get_password_hash(user_data.pop("password"))
+            user_data["hashed_password"] = hashed_password
+        db_user = User(**user_data)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -40,7 +39,7 @@ class CrudUser():
         self, db:Session, db_user: User, user_in: Union[UserUpdate, Dict[str, Any]]
     ) -> User:
         if isinstance(user_in, dict):
-            update_data = user_in
+            update_data = user_in.copy()
         else:
             update_data = user_in.dict(exclude_unset=True)
         if update_data.get("password"):
