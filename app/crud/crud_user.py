@@ -11,10 +11,10 @@ class CrudUser():
     def get_by_id(self, db:Session, id:int) -> Optional[User]:
         return db.query(User).filter(User.id == id).first()
 
-    def get_multi_by_id(
+    def get_multi(
         self, db:Session, skip:int=0, limit:int=100
     ) -> Optional[List[User]]:
-        pass
+        return db.query(User).offset(skip).limit(limit).all()
 
     def get_by_email(self, db:Session, email:str) -> Optional[User]:
         return db.query(User).filter(User.email == email).first()

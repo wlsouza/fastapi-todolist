@@ -31,3 +31,4 @@ def test_when_creating_user_if_that_user_already_exist_returns_status_400(client
     crud.user.create(db=db, user_in=user_dict)
     response = client.post(f"{settings.API_V1_STR}/users/", json=user_dict)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+

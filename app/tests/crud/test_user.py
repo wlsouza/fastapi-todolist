@@ -1,3 +1,4 @@
+from typing import List
 from app.crud import crud_user
 from sqlalchemy.orm import Session
 
@@ -65,3 +66,24 @@ def test_update_user_by_dict(db: Session) -> None:
    user_update_in = {"email": fake.free_email()}
    updated_user = crud.user.update(db=db, db_user=new_user, user_in=user_update_in)
    assert updated_user.email == user_update_in["email"]
+
+def test_if_get_multi_return_a_list_of_users(db: Session) -> None:
+    user_dict = random_user_dict()
+    crud.user.create(db=db, user_in=user_dict)
+    users = crud.user.get_multi(db=db, limit=1)
+    assert isinstance(users, list)
+
+
+def test_if_get_multi_return_the_correct_quantity_of_user(db: Session) -> None:
+    for _ in range(3):
+        user_dict = random_user_dict()
+        crud.user.create(db=db, user_in=user_dict)
+    users = crud.user.get_multi(db=db, limit=2)
+    assert len(users) == 2
+
+def test_if_get_multi_skip_the_correct_quantity_of_user(db: Session) -> None:
+    for _ in range(3):
+        user_dict = random_user_dict()
+        crud.user.create(db=db, user_in=user_dict)
+    users = crud.user.get_multi(db=db, skip=2,  limit=1)
+    assert users[0].id == 3
