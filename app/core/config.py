@@ -5,7 +5,7 @@ from pydantic import BaseSettings, PostgresDsn
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
-    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = 'postgresql://postgres:postgres@localhost:5432/foobar'
+    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = 'postgresql+asyncpg://postgres:postgres@localhost:5432/foobar'
     
     class Config:
         env_file = ".env"

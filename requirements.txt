@@ -3,5 +3,6 @@ uvicorn
 requests
 sqlalchemy
 psycopg2
+asyncpg
 alembic
 passlib[bcrypt]
