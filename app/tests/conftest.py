@@ -1,18 +1,17 @@
 from typing import Generator
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from app.main import app
-from app.database.session import SessionLocal
+from app.database.session import async_session
 
 @pytest.fixture(scope="module")
-def client() -> Generator:
-    with TestClient(app) as client:
-        yield client
+async def async_client() -> Generator:
+    async with AsyncClient(app=app) as async_client:
+        yield async_client
 
-@pytest.fixture(scope="session")
-def db() -> Generator:
-    yield SessionLocal()
-    # with SessionLocal() as db:
-    #     yield db
+@pytest.fixture()
+async def db() -> Generator:
+    async with async_session() as db:
+        yield db

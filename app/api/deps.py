@@ -1,13 +1,8 @@
 from typing import Generator
 
-from sqlalchemy.orm import Session
-
-from app.database.session import SessionLocal
+from app.database.session import async_session
 
 
-def get_db() -> Generator:
-    try:
-        db: Session = SessionLocal()
+async def get_db() -> Generator:
+    async with async_session() as db:
         yield db
-    finally:
-        db.close()

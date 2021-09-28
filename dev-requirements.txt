@@ -1,2 +1,4 @@
-pytest
 faker
+pytest
+pytest-asyncio
+httpx>=1.0.0b0

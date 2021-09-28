@@ -12,7 +12,7 @@ from app.core.config import settings
 # Async
 engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URI, echo=True)
 async_session = sessionmaker(
-    engine=engine,
+    engine,
     expire_on_commit=False,
     future=True, # 2.0 Style 
     class_=AsyncSession # Make a async session

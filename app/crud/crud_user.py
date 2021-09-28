@@ -1,5 +1,5 @@
 from typing import Optional, Union, List, Dict, Any
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -8,19 +8,19 @@ from app.core.security import get_password_hash
 
 class CrudUser():
 
-    def get_by_id(self, db:Session, id:int) -> Optional[User]:
+    def get_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
         return db.query(User).filter(User.id == id).first()
 
     def get_multi(
-        self, db:Session, skip:int=0, limit:int=100
+        self, db:AsyncSession, skip:int=0, limit:int=100
     ) -> Optional[List[User]]:
         return db.query(User).offset(skip).limit(limit).all()
 
-    def get_by_email(self, db:Session, email:str) -> Optional[User]:
+    def get_by_email(self, db:AsyncSession, email:str) -> Optional[User]:
         return db.query(User).filter(User.email == email).first()
 
-    def create(
-        self, db:Session, user_in: Union[UserCreate, Dict[str, Any]]
+    async def create(
+        self, db:AsyncSession, user_in: Union[UserCreate, Dict[str, Any]]
     ) -> User:
         if isinstance(user_in, dict):
             user_data = user_in.copy()
@@ -31,12 +31,12 @@ class CrudUser():
             user_data["hashed_password"] = hashed_password
         db_user = User(**user_data)
         db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
         return db_user
 
     def update(
-        self, db:Session, db_user: User, user_in: Union[UserUpdate, Dict[str, Any]]
+        self, db:AsyncSession, db_user: User, user_in: Union[UserUpdate, Dict[str, Any]]
     ) -> User:
         if isinstance(user_in, dict):
             update_data = user_in.copy()
@@ -52,7 +52,7 @@ class CrudUser():
         db.refresh(db_user)
         return db_user
 
-    def delete_by_id(self, db:Session, id:int) -> Optional[User]:
+    def delete_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
         user = self.get_by_id(db=db, id=id)
         db.delete(user)
         db.commit()
