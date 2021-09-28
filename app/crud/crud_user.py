@@ -1,4 +1,6 @@
 from typing import Optional, Union, List, Dict, Any
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -8,16 +10,25 @@ from app.core.security import get_password_hash
 
 class CrudUser():
 
-    def get_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
-        return db.query(User).filter(User.id == id).first()
+    async def get_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
+        result = await db.execute(
+            select(User).where(User.id == id)
+        )
+        return result.scalar()
 
-    def get_multi(
+    async def get_multi(
         self, db:AsyncSession, skip:int=0, limit:int=100
     ) -> Optional[List[User]]:
-        return db.query(User).offset(skip).limit(limit).all()
-
-    def get_by_email(self, db:AsyncSession, email:str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
+        result = await db.execute(
+            select(User).offset(skip).limit(limit)
+        )
+        return result.scalars().all()
+        
+    async def get_by_email(self, db:AsyncSession, email:str) -> Optional[User]:
+        result = await db.execute(
+            select(User).where(User.email == email)
+        )
+        return result.scalar()
 
     async def create(
         self, db:AsyncSession, user_in: Union[UserCreate, Dict[str, Any]]
@@ -35,7 +46,7 @@ class CrudUser():
         await db.refresh(db_user)
         return db_user
 
-    def update(
+    async def update(
         self, db:AsyncSession, db_user: User, user_in: Union[UserUpdate, Dict[str, Any]]
     ) -> User:
         if isinstance(user_in, dict):
@@ -48,14 +59,14 @@ class CrudUser():
         for field, value in update_data.items():
             if hasattr(db_user, field):
                 setattr(db_user, field, value)
-        db.commit()
-        db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
         return db_user
 
-    def delete_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
-        user = self.get_by_id(db=db, id=id)
-        db.delete(user)
-        db.commit()
+    async def delete_by_id(self, db:AsyncSession, id:int) -> Optional[User]:
+        user = await self.get_by_id(db=db, id=id)
+        await db.delete(user)
+        await db.commit()
         return user
 
     
