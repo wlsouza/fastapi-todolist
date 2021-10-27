@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import AsyncGenerator
 
 import pytest
 import asyncio
@@ -8,12 +8,12 @@ from app.main import app
 from app.database.session import async_session
 
 @pytest.fixture(scope="module")
-async def async_client() -> Generator:
+async def async_client() -> AsyncGenerator:
     async with AsyncClient(app=app) as async_client:
         yield async_client
 
 @pytest.fixture(scope="function")
-async def db() -> Generator:
+async def db() -> AsyncGenerator:
     async with async_session() as db:
         yield db
 
