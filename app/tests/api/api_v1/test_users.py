@@ -7,7 +7,7 @@ from app import crud
 from app.core.config import settings
 from app.tests.utils.user import random_user_dict
 
-def test_resource_users_must_accept_post_verb(async_client: AsyncClient) -> None:
+async def test_resource_users_must_accept_post_verb(async_client: AsyncClient) -> None:
     response = await async_client.post(f"{settings.API_V1_STR}/users/")
     assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
 
