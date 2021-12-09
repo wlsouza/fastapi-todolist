@@ -6,7 +6,7 @@ from pydantic import BaseSettings, PostgresDsn
 class Settings(BaseSettings):
     BASE_URL: str = "http://localhost"
     API_V1_STR: str = "/api/v1"
-    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = 'postgresql+asyncpg://postgres:postgres@localhost:5432/foobar'
+    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = 'postgresql+asyncpg://postgres:postgres@localhost:5432/FASTAPI_TODOLIST"'
 
     class Config:
         env_file = ".env"
