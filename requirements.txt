@@ -6,3 +6,4 @@ psycopg2
 asyncpg
 alembic
 passlib[bcrypt]
+python-jose[cryptography]
