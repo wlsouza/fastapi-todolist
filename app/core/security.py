@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.models import User
+from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -22,9 +23,9 @@ def create_access_token(subject:str, expires_delta:timedelta= None) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=2880) #TODO: Insert minutes in config file
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"exp": expire, "sub": subject}
-    encoded_jwt = jwt.encode(payload, "secret", algorithm="HS256") #TODO: insert secret in config file 
+    encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
 
