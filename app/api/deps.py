@@ -1,8 +1,8 @@
-from typing import Generator
+from typing import AsyncGenerator
 
 from app.database.session import async_session
 
 
-async def get_db() -> Generator:
+async def get_db() -> AsyncGenerator:
     async with async_session() as db:
         yield db
