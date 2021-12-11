@@ -1,4 +1,5 @@
 faker
 pytest
 pytest-asyncio
+aiosqlite
 httpx>=1.0.0b0
