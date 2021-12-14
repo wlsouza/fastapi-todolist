@@ -6,6 +6,8 @@ from app import crud
 from app.schemas.user import UserCreate, UserUpdate
 from app.tests.utils.user import fake, random_user_dict
 
+# TODO: create a function in utils to insert a random user on db and return it.
+# Are only 2 lines, is it worth it? ... 🤔
 
 @pytest.mark.asyncio
 async def test_create_user_by_schema(db: AsyncSession) -> None:
