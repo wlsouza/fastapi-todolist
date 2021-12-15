@@ -1,11 +1,11 @@
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, Union, List, Dict, Any, Literal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 
 
 class CrudUser():
@@ -69,5 +69,13 @@ class CrudUser():
         await db.commit()
         return user
 
+    # TODO: Think if authenticate_user method should be in CrudUser class 
+    async def authenticate_user(self, db:AsyncSession, user_email:str , password:str) -> Union[Literal[False],User]:
+        user = await self.get_by_email(db, user_email)
+        if not user:
+            return False
+        if not verify_password(password, user.hashed_password):
+            return False
+        return user
     
 user = CrudUser()

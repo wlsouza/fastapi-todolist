@@ -1,13 +1,9 @@
-from typing import Union
 from datetime import datetime, timedelta
 
-import asyncio
 from passlib.context import CryptContext
 from jose import jwt
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud
-from app.models import User
+
 from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -27,13 +23,3 @@ def create_access_token(subject:str, expires_delta:timedelta= None) -> str:
     payload = {"exp": expire, "sub": subject}
     encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
-
-
-# TODO: Think if authenticate_user method should be in CrudUser class 
-def authenticate_user(db:AsyncSession, user_id:int , password:str) -> Union[bool,User]:
-    user = asyncio.run(crud.user.get_by_id(db, user_id))
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
