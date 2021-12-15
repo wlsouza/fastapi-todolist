@@ -35,3 +35,13 @@ async def test_when_credentials_are_invalid_returns_status_401(async_client: Asy
     response = await async_client.post(f"{settings.API_V1_STR}/login/access-token", data=payload)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+@pytest.mark.asyncio
+async def test_when_user_is_inactive_returns_status_400(async_client: AsyncClient, db: Session) -> None:
+    user_dict = random_user_dict() | {"is_active": False}
+    await crud.user.create(db=db, user_in=user_dict)
+    payload = {
+        "username": user_dict.get("email"),
+        "password": user_dict.get('password')
+    }
+    response = await async_client.post(f"{settings.API_V1_STR}/login/access-token", data=payload)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
