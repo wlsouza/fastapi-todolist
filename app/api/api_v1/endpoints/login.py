@@ -13,7 +13,7 @@ from app.core.config import settings
 
 router = APIRouter()
 
-TODO: Improve errors messages.
+# TODO: Improve errors messages.
 @router.post("/access-token", response_model=schemas.Token, responses={400:{"model":schemas.Message}, 401:{"model":schemas.Message}})
 async def login_access_token(db:Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user = await crud.user.authenticate_user(
