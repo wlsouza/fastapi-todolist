@@ -6,5 +6,5 @@ class Token(BaseModel):
     access_token:  str
     token_type: str
 
-class TokenPayload(Token):
-    sub: Optional[int] = None
+class TokenPayload(BaseModel):
+    sub: str
