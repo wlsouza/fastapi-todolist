@@ -10,6 +10,8 @@ from app import schemas, models, crud
 from app.core.config import settings
 from app.database.session import async_session
 
+default_auth_responses = {403:{"model":schemas.HTTPError},404:{"model":schemas.HTTPError}}
+
 #TODO: Make reusable_oauth2 more abstract to use in APIv1 and a possible APIv2, APIv3...
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -28,9 +30,7 @@ async def get_token_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ACCESS_TOKEN_ALGORITHM]
         )
-        print(f"payload:{payload}")
         token_data = schemas.TokenPayload(**payload)
-        print(f"token_data:{token_data}")
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

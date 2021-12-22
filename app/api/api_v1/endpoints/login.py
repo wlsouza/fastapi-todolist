@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
@@ -14,20 +14,20 @@ from app.core.config import settings
 router = APIRouter()
 
 # TODO: Improve errors messages.
-@router.post("/access-token", response_model=schemas.Token, responses={400:{"model":schemas.Message}, 401:{"model":schemas.Message}})
+@router.post("/access-token", response_model=schemas.Token, responses={400:{"model":schemas.HTTPError}, 401:{"model":schemas.HTTPError}})
 async def login_access_token(db:Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user = await crud.user.authenticate_user(
         db, user_email=form_data.username, password= form_data.password
     )
     if not user:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            content="Incorrect email or password"
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="testando"
         )
     elif not user.is_active:
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content="Inactive user"
+            detail="Inactive user"
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
