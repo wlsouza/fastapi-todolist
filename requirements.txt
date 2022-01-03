@@ -7,3 +7,5 @@ asyncpg
 alembic
 passlib[bcrypt]
 python-jose[cryptography]
+celery
+flower

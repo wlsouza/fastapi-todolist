@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ACCESS_TOKEN_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 2 # 60 min * 24 hrs * 2 days = 2 days
-    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = 'postgresql+asyncpg://postgres:postgres@localhost:5432/FASTAPI_TODOLIST"'
+    SQLALCHEMY_DATABASE_URI: Union[str, PostgresDsn] = "postgresql+asyncpg://postgres:postgres@localhost:5432/FASTAPI_TODOLIST"
+    BROKER_URI: str = "amqp://guest@localhost:5672//" 
+
 
     class Config:
         env_file = ".env"

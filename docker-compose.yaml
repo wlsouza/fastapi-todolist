@@ -9,7 +9,18 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USR}
       POSTGRES_PASSWORD: ${POSTGRES_PWD}
-    env_file: 
-      - .env
+    # env_file: 
+    #   - .env
     volumes:
       - ".data/postgres:/var/lib/postgresql/data"
+
+  broker-1:
+    image: rabbitmq:alpine
+    container_name: fastapi-todolist-broker-1
+    ports:
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  

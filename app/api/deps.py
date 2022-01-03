@@ -22,7 +22,6 @@ async def get_db() -> AsyncGenerator:
         yield db
 
 
-#TODO: Try document error on OPENAPI
 async def get_token_user(
     db: AsyncSession = Depends(get_db), token:str = Depends(reusable_oauth2)
 ) -> models.User:
