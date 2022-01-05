@@ -1,0 +1,38 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all padding="0px"></mj-all>
+      <mj-text font-family="Ubuntu, Helvetica, Arial, sans-serif" padding="0 25px" font-size="13px"></mj-text>
+      <mj-section background-color="#ffffff"></mj-section>
+      <mj-class name="preheader" color="#000000" font-size="11px"></mj-class>
+    </mj-attributes>
+    <mj-style inline="inline">a { text-decoration: none!important; color: inherit!important; }</mj-style>
+  </mj-head>
+  <mj-body background-color="#bedae6">
+    <mj-section>
+      <mj-column width="100%">
+        <mj-image src="https://cdn.snov.io/blog/wp-content/uploads/2019/12/IMG_0022-min-1536x768.png" alt="header image" padding="0px"></mj-image>
+      </mj-column>
+    </mj-section>
+    <mj-section padding-top="10px">
+      <mj-column>
+        <mj-text align="center" padding="10px 25px" font-size="20px" color="#512d0b"><strong>Hey {{first_name}}!</strong></mj-text>
+        <mj-text align="center" font-size="18px" font-family="Arial">We're happy you signed up for <strong>FastAPI-Todolist API</strong>.<br /> To activate your account please confirm your email address.
+          <p></p>
+        </mj-text>
+        <mj-button background-color="#8bb420" color="#FFFFFF" href="{{verification_link}}" font-family="Arial, sans-serif" padding="20px 0 0 0" font-weight="bold" font-size="16px">Verify Now</mj-button>
+        <mj-text align="center" color="#000000" font-size="14px" font-family="Arial, sans-serif" padding-top="30px" padding-bottom="4px">This verification link will expire in 24 hours.</mj-text>
+        <mj-divider border-color="#000000"></mj-divider>
+      </mj-column>
+    </mj-section>
+    <mj-section padding-bottom="10px" padding-top="10px">
+      <mj-column>
+        <mj-social font-size="15px" icon-size="30px" mode="horizontal" text-padding="4px">
+          <mj-social-element name="github" href="https://github.com/wlsouza/fastapi-todolist">
+            Github Project
+          </mj-social-element>
+        </mj-social>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

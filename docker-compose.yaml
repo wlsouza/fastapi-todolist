@@ -14,6 +14,37 @@ services:
     volumes:
       - ".data/postgres:/var/lib/postgresql/data"
 
+  # broker-1:
+  #   image: rabbitmq:alpine
+  #   container_name: fastapi-todolist-broker-1
+  #   ports:
+  #     - "5672:5672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  # celeryflower:
+  #   build: .
+  #   container_name: fastapi-todolist-celeryflower
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 5555:5555
+  #   depends_on:
+  #     - broker-1
+  #   command: "celery -A app.celery_worker flower"
+
+  # celeryworker-1:
+  #   build: .
+  #   container_name: fastapi-todolist-celeryworker-1
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - broker-1
+  #   # volumes:
+  #   #   - "./:/app"
+  #   command: "celery -A app.celery_worker worker -l info"
+
   api:
     build: .
     container_name: fastapi-todolist-api
@@ -26,23 +57,3 @@ services:
     command: > 
       sh -c "alembic upgrade head 
       && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-
-  broker-1:
-    image: rabbitmq:alpine
-    container_name: fastapi-todolist-broker-1
-    ports:
-      - "5672:5672"
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-
-  celeryworker-1:
-    build: .
-    container_name: fastapi-todolist-celeryworker-1
-    env_file:
-      - .env
-    depends_on:
-      - broker-1
-    # volumes:
-    #   - "./:/app"
-    command: "celery -A app.celery_worker worker -l info"
