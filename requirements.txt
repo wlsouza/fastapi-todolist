@@ -1,12 +1,12 @@
 fastapi[all]
-uvicorn
-requests
-sqlalchemy
-psycopg2
-asyncpg
-alembic
-passlib[bcrypt]
-python-jose[cryptography]
-celery
-flower
-fastapi-mail
+uvicorn >=0.15.0
+requests >=2.26.0
+sqlalchemy >= 1.4.27
+psycopg2 >= 2.9.2
+asyncpg >= 0.25.0
+alembic >= 1.7.5
+passlib[bcrypt] >=1.7.4
+python-jose[cryptography] >=3.3.0
+celery >= 5.2.3
+flower >= 1.0.0
+fastapi-mail>=1.0.2 
