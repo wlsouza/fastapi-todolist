@@ -22,7 +22,7 @@ async def create_user(
     user = await crud.user.create(db=db, user_in=user_in)
     return user
 
-@router.get("/me/", response_model=schemas.User, status_code=status.HTTP_200_OK, responses=deps.default_auth_responses)
+@router.get("/me/", response_model=schemas.User, status_code=status.HTTP_200_OK, responses=deps.GET_TOKEN_USER_RESPONSES)
 async def get_current_user(
     user:models.User = Depends(deps.get_token_user)
 )-> Any:

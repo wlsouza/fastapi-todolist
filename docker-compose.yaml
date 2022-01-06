@@ -14,36 +14,36 @@ services:
     volumes:
       - ".data/postgres:/var/lib/postgresql/data"
 
-  # broker-1:
-  #   image: rabbitmq:alpine
-  #   container_name: fastapi-todolist-broker-1
-  #   ports:
-  #     - "5672:5672"
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+  broker-1:
+    image: rabbitmq:alpine
+    container_name: fastapi-todolist-broker-1
+    ports:
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
-  # celeryflower:
-  #   build: .
-  #   container_name: fastapi-todolist-celeryflower
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - 5555:5555
-  #   depends_on:
-  #     - broker-1
-  #   command: "celery -A app.celery_worker flower"
+  celeryflower:
+    build: .
+    container_name: fastapi-todolist-celeryflower
+    env_file:
+      - .env
+    ports:
+      - 5555:5555
+    depends_on:
+      - broker-1
+    command: "celery -A app.celery_worker flower"
 
-  # celeryworker-1:
-  #   build: .
-  #   container_name: fastapi-todolist-celeryworker-1
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - broker-1
-  #   # volumes:
-  #   #   - "./:/app"
-  #   command: "celery -A app.celery_worker worker -l info"
+  celeryworker-1:
+    build: .
+    container_name: fastapi-todolist-celeryworker-1
+    env_file:
+      - .env
+    depends_on:
+      - broker-1
+    # volumes:
+    #   - "./:/app"
+    command: "celery -A app.celery_worker worker -l info"
 
   api:
     build: .

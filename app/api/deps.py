@@ -1,16 +1,19 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Dict, Any
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schemas, models, crud
 from app.core.config import settings
+from app.core.security import decode_jwt_token
 from app.database.session import async_session
 
-default_auth_responses = {403:{"model":schemas.HTTPError},404:{"model":schemas.HTTPError}}
+GET_TOKEN_PAYLOAD_RESPONSES = {403:{"model":schemas.HTTPError}}
+GET_TOKEN_USER_RESPONSES = GET_TOKEN_PAYLOAD_RESPONSES | {403:{"model":schemas.HTTPError}, 404:{"model":schemas.HTTPError}}
+
 
 #TODO: Make reusable_oauth2 more abstract to use in APIv1 and a possible APIv2, APIv3...
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -21,16 +24,32 @@ async def get_db() -> AsyncGenerator:
     async with async_session() as db:
         yield db
 
+def get_token_payload(token:str = Depends(reusable_oauth2)) -> Dict[str, Any]:
+    try:
+        payload = decode_jwt_token(token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The token has expired"
+        )
+    except jwt.ImmatureSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The token is not yet valid."
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validade credentials"
+        )
+    return payload
 
 async def get_token_user(
-    db: AsyncSession = Depends(get_db), token:str = Depends(reusable_oauth2)
+    db: AsyncSession = Depends(get_db), payload:str = Depends(get_token_payload)
 ) -> models.User:
     try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ACCESS_TOKEN_ALGORITHM]
-        )
         token_data = schemas.TokenPayload(**payload)
-    except (jwt.JWTError, ValidationError):
+    except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validade credentials"
