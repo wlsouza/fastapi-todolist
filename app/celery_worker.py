@@ -14,7 +14,8 @@ def send_verification_email(email_to:str, first_name:str, token:str):
         recipients =[email_to],
         template_body = {
             "first_name": first_name,
-            "verification_link": verification_link
+            "verification_link": verification_link,
+            "token": token
         }
     )
 
