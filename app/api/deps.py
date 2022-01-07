@@ -13,7 +13,8 @@ from app.database.session import async_session
 
 GET_TOKEN_PAYLOAD_RESPONSES = {403:{"model":schemas.HTTPError}}
 GET_TOKEN_USER_RESPONSES = GET_TOKEN_PAYLOAD_RESPONSES | {403:{"model":schemas.HTTPError}, 404:{"model":schemas.HTTPError}}
-
+GET_TOKEN_ACTIVE_USER_RESPONSES = GET_TOKEN_USER_RESPONSES | {403:{"model":schemas.HTTPError}}
+GET_TOKEN_ACTIVE_SUPERUSER_RESPONSES = GET_TOKEN_ACTIVE_USER_RESPONSES | {403:{"model":schemas.HTTPError}}
 
 #TODO: Make reusable_oauth2 more abstract to use in APIv1 and a possible APIv2, APIv3...
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -45,7 +46,7 @@ def get_token_payload(token:str = Depends(reusable_oauth2)) -> Dict[str, Any]:
     return payload
 
 async def get_token_user(
-    db: AsyncSession = Depends(get_db), payload:str = Depends(get_token_payload)
+    db: AsyncSession = Depends(get_db), payload:Dict[str, Any] = Depends(get_token_payload)
 ) -> models.User:
     try:
         token_data = schemas.TokenPayload(**payload)
@@ -59,5 +60,25 @@ async def get_token_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
+        )
+    return user
+
+async def get_token_active_user(
+    user: models.User = Depends(get_token_user)
+) -> models.User:
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user"
+        )
+    return user
+
+async def get_token_active_superuser(
+    user: models.User = Depends(get_token_active_user)
+) -> models.User:
+    if not user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges"
         )
     return user
