@@ -63,7 +63,7 @@ async def get_token_user(
         )
     return user
 
-async def get_token_active_user(
+def get_token_active_user(
     user: models.User = Depends(get_token_user)
 ) -> models.User:
     if not user.is_active:
@@ -73,7 +73,7 @@ async def get_token_active_user(
         )
     return user
 
-async def get_token_active_superuser(
+def get_token_active_superuser(
     user: models.User = Depends(get_token_active_user)
 ) -> models.User:
     if not user.is_superuser:

@@ -9,7 +9,7 @@ from app.core.security import get_password_hash, verify_password
 
 class CrudUser():
 
-    async def get_by_id(self, db:AsyncSession, id:int) -> Optional[models.User]:
+    async def get_by_id(self, db:AsyncSession, id:Union[int, str]) -> Optional[models.User]:
         result = await db.execute(
             select(models.User).where(models.User.id == id)
         )
@@ -62,7 +62,7 @@ class CrudUser():
         await db.refresh(db_user)
         return db_user
 
-    async def delete_by_id(self, db:AsyncSession, id:int) -> Optional[models.User]:
+    async def delete_by_id(self, db:AsyncSession, id:Union[int, str]) -> Optional[models.User]:
         user = await self.get_by_id(db=db, id=id)
         await db.delete(user)
         await db.commit()

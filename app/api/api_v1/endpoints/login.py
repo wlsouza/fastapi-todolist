@@ -31,7 +31,7 @@ async def login_access_token(db:AsyncSession = Depends(deps.get_db), form_data: 
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_jwt_token(
-        subject=str(user.id), expires_delta=access_token_expires
+        subject=user.id, expires_delta=access_token_expires
     )
     return {
         "access_token": access_token,

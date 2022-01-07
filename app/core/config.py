@@ -29,13 +29,14 @@ class Settings(BaseSettings):
     MAIL_SERVER: Optional[str] = None
     MAIL_TLS: Optional[bool] = None
     MAIL_SSL: Optional[bool] = None
-    EMAIL_TEMPLATES_DIR: Path = Path("/app/app/email-templates/build")
+    EMAIL_TEMPLATES_DIR: Union[Path,str] = Path(__file__).parent.parent / "email-templates/build" #Path("/app/app/email-templates/build")
     EMAIL_CONNECTION_CONFIG: Optional[ConnectionConfig] = None 
 
     @validator("EMAIL_CONNECTION_CONFIG", pre=True)
     def assemble_email_config(cls, v: Optional[ConnectionConfig], values: Dict[str, Any]) -> Any:
         if isinstance(v, ConnectionConfig):
             return v
+        print(type(values.get("EMAIL_TEMPLATES_DIR")))
         return ConnectionConfig(
             MAIL_USERNAME=values.get("MAIL_USERNAME"),
             MAIL_PASSWORD=values.get("MAIL_PASSWORD"),

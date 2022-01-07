@@ -16,13 +16,13 @@ class UserCreate(UserBase):
 # Properties to receive via API on update
 class UserUpdate(UserBase):
     password: Optional[str] = None
-    is_active: Optional[bool] = True
+    is_active: Optional[bool] = False
     is_superuser: bool = False
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):
     id: Optional[int]
-    is_active: Optional[bool] = True
+    is_active: Optional[bool] = False
     is_superuser: bool = False
 
 

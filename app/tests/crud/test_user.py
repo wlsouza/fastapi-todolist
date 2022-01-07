@@ -30,10 +30,10 @@ async def test_when_create_user_return_hashed_password(db: AsyncSession) -> None
     assert hasattr(new_user, "hashed_password")
 
 @pytest.mark.asyncio
-async def test_when_create_user_if_attribute_is_active_is_not_set_it_must_be_true(db: AsyncSession) -> None:
+async def test_when_create_user_if_attribute_is_active_is_not_set_it_must_be_false(db: AsyncSession) -> None:
     user_dict = random_user_dict()
     new_user = await crud.user.create(db=db, user_in=user_dict)
-    assert new_user.is_active == True
+    assert new_user.is_active == False
 
 @pytest.mark.asyncio
 async def test_when_create_user_if_attribute_is_superuser_is_not_set_it_must_be_false(db: AsyncSession) -> None:
@@ -52,8 +52,8 @@ async def test_if_get_by_email_return_correct_user(db: AsyncSession) -> None:
 async def test_if_get_by_id_return_correct_user(db: AsyncSession) -> None:
     user_dict = random_user_dict()
     new_user = await crud.user.create(db=db, user_in=user_dict)
-    returned_user = await crud.user.get_by_id(db=db, id= new_user.id)
-    assert returned_user.id == new_user.id
+    returned_user = await crud.user.get_by_id(db=db, id=new_user.id)
+    assert new_user.email == returned_user.email
 
 @pytest.mark.asyncio
 async def test_if_delete_by_id_really_delete_the_user(db: AsyncSession):

@@ -12,7 +12,7 @@ app.include_router(api_v1_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def im_alive():
-    send_verification_email.delay("faranes767@whecode.com","Joandel","1232")
+    # send_verification_email.delay("faranes767@whecode.com","Joandel","1232")
     return "I'am alive!"
 
 if __name__ == "__main__":

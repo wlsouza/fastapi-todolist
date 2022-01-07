@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime, timedelta
 
 import jwt
@@ -14,7 +15,7 @@ def verify_password(raw_password:str, hashed_password:str) -> bool:
     return pwd_context.verify(raw_password, hashed_password)
 
 
-def create_jwt_token(subject:str, starts_delta:timedelta=None, expires_delta:timedelta=None) -> str:
+def create_jwt_token(subject:Union[str,int], starts_delta:timedelta=None, expires_delta:timedelta=None) -> str:
     start = datetime.utcnow() 
     if starts_delta:
         start += starts_delta

@@ -1,12 +1,12 @@
 import pytest
 from fastapi import status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
 from app import crud
 from app.core.config import settings
 from app.tests.utils import user
-from app.tests.utils.user import random_user_dict
+from app.tests.utils.user import random_user_dict, random_active_user_dict
 
 @pytest.mark.asyncio
 async def test_resource_token_must_accept_post_verb(async_client: AsyncClient) -> None:
@@ -14,8 +14,8 @@ async def test_resource_token_must_accept_post_verb(async_client: AsyncClient) -
     assert response.status_code != status.HTTP_405_METHOD_NOT_ALLOWED
 
 @pytest.mark.asyncio
-async def test_when_credentials_are_valid_returns_status_200(async_client: AsyncClient, db: Session) -> None:
-    user_dict = random_user_dict()
+async def test_when_credentials_are_valid_returns_status_200(async_client: AsyncClient, db: AsyncSession) -> None:
+    user_dict = random_active_user_dict()
     await crud.user.create(db=db, user_in=user_dict)
     payload = {
         "username": user_dict.get("email"),
@@ -25,8 +25,8 @@ async def test_when_credentials_are_valid_returns_status_200(async_client: Async
     assert response.status_code == status.HTTP_200_OK
 
 @pytest.mark.asyncio
-async def test_when_credentials_are_invalid_returns_status_401(async_client: AsyncClient, db: Session) -> None:
-    user_dict = random_user_dict()
+async def test_when_credentials_are_invalid_returns_status_401(async_client: AsyncClient, db: AsyncSession) -> None:
+    user_dict = random_active_user_dict()
     await crud.user.create(db=db, user_in=user_dict)
     payload = {
         "username": user_dict.get("email"),
@@ -36,8 +36,8 @@ async def test_when_credentials_are_invalid_returns_status_401(async_client: Asy
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 @pytest.mark.asyncio
-async def test_when_user_is_inactive_returns_status_400(async_client: AsyncClient, db: Session) -> None:
-    user_dict = random_user_dict() | {"is_active": False}
+async def test_when_user_is_inactive_returns_status_400(async_client: AsyncClient, db: AsyncSession) -> None:
+    user_dict = random_user_dict()
     await crud.user.create(db=db, user_in=user_dict)
     payload = {
         "username": user_dict.get("email"),
