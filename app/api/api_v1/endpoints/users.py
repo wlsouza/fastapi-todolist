@@ -31,6 +31,16 @@ async def get_current_user(
 )-> Any:
     return token_user
 
+
+@router.put("/me", response_model=schemas.User, status_code=status.HTTP_200_OK, responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES)
+async def update_current_user(
+    user_in: schemas.UserUpdate,
+    token_user:models.User = Depends(deps.get_token_active_user),
+    db: AsyncSession = Depends(deps.get_db)
+)-> Any:
+    user = await crud.user.update(db=db, db_user=token_user, user_in=user_in)
+    return user
+
 @router.get("/{user_id}", response_model=schemas.User, status_code=status.HTTP_200_OK, responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES)
 async def get_user_by_id(
     user_id: int,
@@ -53,3 +63,29 @@ async def get_user_by_id(
             detail="User not found"
         )
     return user
+
+@router.put("/{user_id}", response_model=schemas.User, status_code=status.HTTP_200_OK, responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES)
+async def update_user_by_id(
+    user_id: int,
+    user_in: schemas.UserUpdate,
+    token_user:models.User = Depends(deps.get_token_active_user),
+    db: AsyncSession = Depends(deps.get_db)
+)-> Any:
+    if token_user.id == user_id:
+        updated_user = await crud.user.update(db=db, db_user=token_user, user_in=user_in)
+        return updated_user
+
+    if not token_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges"
+        )
+        
+    db_user = await crud.user.get_by_id(db=db, id=user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    updated_user = await crud.user.update(db=db, db_user=db_user, user_in=user_in)
+    return updated_user

@@ -17,7 +17,10 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     password: Optional[str] = None
     is_active: Optional[bool] = False
-    is_superuser: bool = False
+    is_superuser: Optional[bool] = False
+
+    class Config:
+        extra = "forbid"
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):
