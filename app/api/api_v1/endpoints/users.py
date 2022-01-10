@@ -6,6 +6,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from app import schemas, models, crud
 from app.api import deps
+from app.schemas import token
 
 router = APIRouter()
 
@@ -38,6 +39,23 @@ async def update_current_user(
     token_user:models.User = Depends(deps.get_token_active_user),
     db: AsyncSession = Depends(deps.get_db)
 )-> Any:
+    """
+    Update your own user.\n
+    Note: If the email is updated, the user will be deactivated and the email will have to be re-verified. (Unless you are an admin) 
+    """
+
+    if not token_user.is_superuser:
+        # Normal user can't give superuser
+        if user_in.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="The user doesn't have enough privileges"
+            )
+
+        # Deactivate the user
+        if user_in.email and user_in.email != token_user.email:
+            user_in.is_active = False
+
     user = await crud.user.update(db=db, db_user=token_user, user_in=user_in)
     return user
 
@@ -71,7 +89,24 @@ async def update_user_by_id(
     token_user:models.User = Depends(deps.get_token_active_user),
     db: AsyncSession = Depends(deps.get_db)
 )-> Any:
+    """
+    Update a user by id.\n
+    Note: If the email is updated, the user will be deactivated and the email will have to be re-verified. (Unless you are an admin) 
+    """
     if token_user.id == user_id:
+
+        if not token_user.is_superuser:
+            # Normal user can't give superuser
+            if user_in.is_superuser:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="The user doesn't have enough privileges"
+                )
+
+            # Deactivate the user
+            if user_in.email and user_in.email != token_user.email: 
+                user_in.is_active = False
+
         updated_user = await crud.user.update(db=db, db_user=token_user, user_in=user_in)
         return updated_user
 

@@ -3,6 +3,7 @@ import pytest
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
+from sqlalchemy.sql.functions import user
 
 from app import crud, models
 from app.core.config import settings
@@ -10,7 +11,10 @@ from app.tests.utils.user import fake, random_user_dict, random_active_user_dict
 from app.tests.utils.auth import get_user_token_headers, get_expired_user_token_headers
 
 
-@pytest.fixture(scope="session")
+# Be careful not to inactivate the user when running the tests.
+# If it is not possible to avoid it, remove the "scope" so that
+#  another user is created for each test.
+@pytest.fixture(scope="session") 
 async def active_user(db: AsyncSession) -> models.User:
     user_dict = random_active_user_dict()
     user = await crud.user.create(db=db, user_in=user_dict)
@@ -44,16 +48,14 @@ async def test_when_successfully_get_user_by_id_it_must_be_returned(async_client
 
 @pytest.mark.asyncio
 async def test_when_getting_different_user_by_id_if_token_user_is_not_superuser_it_must_return_403(active_user:models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     headers = get_user_token_headers(active_user)
     response = await async_client.get(f"{settings.API_V1_STR}/users/{target_user.id}",headers=headers)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 @pytest.mark.asyncio
 async def test_when_getting_different_user_by_id_if_token_user_is_superuser_the_user_must_be_returned(active_superuser:models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     headers = get_user_token_headers(active_superuser)
     response = await async_client.get(f"{settings.API_V1_STR}/users/{target_user.id}",headers=headers)
     assert response.json().get("id") == target_user.id
@@ -77,8 +79,7 @@ async def test_when_getting_user_by_id_if_token_user_is_not_active_must_return_4
 
 @pytest.mark.asyncio
 async def test_when_getting_different_user_by_id_if_user_not_exist_and_token_user_is_not_superuser_must_return_403(active_user: models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_user)
     response = await async_client.get(f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers)
@@ -86,8 +87,7 @@ async def test_when_getting_different_user_by_id_if_user_not_exist_and_token_use
 
 @pytest.mark.asyncio
 async def test_when_getting_different_user_by_id_if_user_not_exist_and_token_user_is_superuser_must_return_404(active_superuser: models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_superuser)
     response = await async_client.get(f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers)
@@ -98,31 +98,29 @@ async def test_when_getting_different_user_by_id_if_user_not_exist_and_token_use
 
 @pytest.mark.asyncio
 async def test_when_successfully_update_user_by_id_must_return_200(async_client: AsyncClient, active_user:models.User) -> None:
-    payload = random_user_dict()
+    payload = {"full_name": fake.name()}
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{active_user.id}",headers=headers, json=payload)
     assert response.status_code == status.HTTP_200_OK
 
 @pytest.mark.asyncio
 async def test_when_successfully_update_user_by_id_it_must_be_returned(async_client: AsyncClient, active_user:models.User) -> None:
-    payload = random_user_dict()
+    payload = {"full_name": fake.name()}
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{active_user.id}",headers=headers, json=payload)
-    assert response.json().get("email") == payload.get("email")
+    assert response.json().get("full_name") == payload.get("full_name")
 
 @pytest.mark.asyncio
 async def test_when_updating_different_user_by_id_if_token_user_is_not_superuser_it_must_return_403(active_user:models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=user_dict)
-    payload = random_user_dict()
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
+    payload = {"full_name": fake.name()}
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{target_user.id}",headers=headers, json=payload)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 @pytest.mark.asyncio
 async def test_when_updating_different_user_by_id_if_token_user_is_superuser_the_user_must_be_updated(active_superuser:models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     payload = random_user_dict() 
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{target_user.id}",headers=headers, json=payload)
@@ -146,9 +144,23 @@ async def test_when_updating_user_by_id_if_token_user_is_not_active_must_return_
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 @pytest.mark.asyncio
+async def test_when_user_is_updated_if_email_is_changed_by_non_superuser_the_user_must_be_deactivated(db: AsyncSession, async_client: AsyncClient) -> None:
+    active_user = await crud.user.create(db=db, user_in=random_active_user_dict())
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_user)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/{active_user.id}", headers=headers, json=payload)
+    assert response.json().get("is_active") == False
+
+@pytest.mark.asyncio
+async def test_when_user_is_updated_if_email_is_changed_by_superuser_the_user_must_continue_activate(async_client: AsyncClient, active_superuser:models.User) -> None:
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/{active_superuser.id}", headers=headers, json=payload)
+    assert response.json().get("is_active") == True
+
+@pytest.mark.asyncio
 async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_user_is_not_superuser_must_return_403(active_user: models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers, json={})
@@ -156,15 +168,28 @@ async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_us
 
 @pytest.mark.asyncio
 async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_user_is_superuser_must_return_404(active_superuser: models.User, async_client: AsyncClient, db: AsyncSession) -> None:
-    target_user_dict = random_active_user_dict()
-    target_user = await crud.user.create(db=db, user_in=target_user_dict)
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers, json={})
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-# endregion
+@pytest.mark.asyncio
+async def test_when_updating_user_to_superuser_if_token_user_is_not_superuser_must_return_403(async_client: AsyncClient, active_user:models.User) -> None:
+    payload = {"is_superuser": True}
+    headers = get_user_token_headers(active_user)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/{active_user.id}", headers=headers, json=payload)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
+@pytest.mark.asyncio
+async def test_when_updating_user_to_superuser_if_token_user_is_superuser_must_return_200(db:AsyncSession, async_client: AsyncClient, active_superuser:models.User) -> None:
+    target_user = await crud.user.create(db=db, user_in=random_active_user_dict())
+    payload = {"is_superuser": True}
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers, json=payload)
+    assert response.json().get("is_superuser") == True
+
+# endregion
 
 # region create user - POST /users/
 
@@ -228,8 +253,7 @@ async def test_when_getting_own_user_if_token_is_expired_must_return_403(async_c
 
 @pytest.mark.asyncio
 async def test_when_getting_own_user_if_user_not_exist_must_return_404(async_client: AsyncClient, db: AsyncSession) -> None:
-    user_dict = random_active_user_dict()
-    user = await crud.user.create(db=db, user_in=user_dict)
+    user = await crud.user.create(db=db, user_in=random_active_user_dict())
     headers = get_user_token_headers(user)
     await crud.user.delete_by_id(db=db, id=user.id)
     response = await async_client.get(f"{settings.API_V1_STR}/users/me", headers=headers)
@@ -246,7 +270,7 @@ async def test_resource_users_must_accept_post_verb(async_client: AsyncClient) -
 
 @pytest.mark.asyncio
 async def test_when_own_user_is_updated_must_return_200(async_client: AsyncClient, active_user:models.User) -> None:
-    payload = random_user_dict()
+    payload = {"full_name": fake.name()}
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
     assert response.status_code == status.HTTP_200_OK
@@ -257,6 +281,21 @@ async def test_when_own_user_is_updated_it_must_be_returned(async_client: AsyncC
     headers = get_user_token_headers(active_user)
     response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
     assert response.json().get("full_name") == payload.get("full_name")
+
+@pytest.mark.asyncio
+async def test_when_own_user_is_updated_if_email_is_changed_by_non_superuser_the_user_must_be_deactivated(db:AsyncSession, async_client: AsyncClient) -> None:
+    active_user = await crud.user.create(db=db, user_in=random_active_user_dict())
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_user)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
+    assert response.json().get("is_active") == False
+
+@pytest.mark.asyncio
+async def test_when_own_user_is_updated_if_email_is_changed_by_superuser_the_user_must_continue_activate(async_client: AsyncClient, active_superuser:models.User) -> None:
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
+    assert response.json().get("is_active") == True
 
 @pytest.mark.asyncio
 async def test_when_updating_own_user_if_body_has_not_valid_field_must_return_422(async_client: AsyncClient, active_user:models.User) -> None:
@@ -284,11 +323,29 @@ async def test_when_updating_own_user_if_token_user_is_not_active_must_return_40
 
 @pytest.mark.asyncio
 async def test_when_updating_own_user_if_user_not_exist_must_return_404(async_client: AsyncClient, db: AsyncSession) -> None:
-    user_dict = random_active_user_dict()
-    user = await crud.user.create(db=db, user_in=user_dict)
+    user = await crud.user.create(db=db, user_in=random_active_user_dict())
     headers = get_user_token_headers(user)
     await crud.user.delete_by_id(db=db, id=user.id)
     response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
+@pytest.mark.asyncio
+async def test_when_updating_own_user_to_superuser_if_user_is_not_superuser_must_return_403(async_client: AsyncClient, active_user:models.User) -> None:
+    payload = {"is_superuser": True}
+    headers = get_user_token_headers(active_user)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+@pytest.mark.asyncio
+async def test_when_updating_own_user_to_superuser_if_user_is_superuser_must_return_200(async_client: AsyncClient, active_superuser:models.User) -> None:
+    payload = {"is_superuser": True}
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.put(f"{settings.API_V1_STR}/users/me", headers=headers, json=payload)
+    assert response.status_code == status.HTTP_200_OK
+# endregion
+
+# region delete own user - DELETE /users/me
+# endregion
+
+# region delete own user - DELETE /users/{user_id}
 # endregion
