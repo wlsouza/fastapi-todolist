@@ -5,11 +5,9 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
-
-
+from app.core.config import settings
 from app.database.base import Base
 from app.models import *
-from app.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,6 +27,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
 
 def get_url():
     # Create the URI here if necessary.
@@ -60,14 +59,16 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-# edited to run in asynchronous mode, follow link for better understanding. 
+# edited to run in asynchronous mode, follow link for better understanding.
 # https://alembic.sqlalchemy.org/en/latest/cookbook.html#using-asyncio-with-alembic
+
 
 def do_run_migrations(connection):
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
         context.run_migrations()
+
 
 async def run_migrations_online():
     """Run migrations in 'online' mode.
@@ -92,6 +93,7 @@ async def run_migrations_online():
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
+
 
 if context.is_offline_mode():
     run_migrations_offline()
