@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     ) -> Optional[ConnectionConfig]:
         if isinstance(v, ConnectionConfig):
             return v
+        if values.get("APP_ENVIRONMENT") == "test":
+            return None
         return ConnectionConfig(
             MAIL_USERNAME=values.get("MAIL_USERNAME"),
             MAIL_PASSWORD=values.get("MAIL_PASSWORD"),
