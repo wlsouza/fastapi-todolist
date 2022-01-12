@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.core.config import settings
-from app.tests.utils import user
 from app.tests.utils.user import random_active_user_dict, random_user_dict
 
 
