@@ -2,11 +2,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
-from app.schemas.user import UserCreate, UserUpdate
-from app.tests.utils.user import fake, random_user_dict
-
-# TODO: create a function in utils to insert a random user on db and return it.
-# Are only 2 lines, is it worth it? ... 🤔
+from app.schemas.user import UserCreate, UserUpdatePUT, UserUpdatePATCH
+from app.tests.utils.user import fake, random_user_dict, random_active_superuser_dict
 
 
 @pytest.mark.asyncio
@@ -40,7 +37,7 @@ async def test_when_create_user_if_attribute_is_active_is_not_set_it_must_be_fal
 ) -> None:
     user_dict = random_user_dict()
     new_user = await crud.user.create(db=db, user_in=user_dict)
-    assert new_user.is_active == False
+    assert new_user.is_active is False
 
 
 @pytest.mark.asyncio
@@ -49,7 +46,7 @@ async def test_when_create_user_if_attribute_is_superuser_is_not_set_it_must_be_
 ) -> None:
     user_dict = random_user_dict()
     new_user = await crud.user.create(db=db, user_in=user_dict)
-    assert new_user.is_superuser == False
+    assert not new_user.is_superuser
 
 
 @pytest.mark.asyncio
@@ -76,14 +73,24 @@ async def test_if_delete_by_id_really_delete_the_user(db: AsyncSession):
     new_user = await crud.user.create(db=db, user_in=user_dict)
     await crud.user.delete_by_id(db=db, id=new_user.id)
     returned_user = await crud.user.get_by_id(db=db, id=new_user.id)
-    assert returned_user == None
+    assert returned_user is None
 
 
 @pytest.mark.asyncio
-async def test_update_user_by_userupdate_schema(db: AsyncSession) -> None:
+async def test_update_user_by_userupdateput_schema(db: AsyncSession) -> None:
     user_dict = random_user_dict()
     new_user = await crud.user.create(db=db, user_in=user_dict)
-    user_update_in = UserUpdate(email=fake.free_email())
+    user_update_in = UserUpdatePUT(**random_active_superuser_dict())
+    updated_user = await crud.user.update(
+        db=db, db_user=new_user, user_in=user_update_in
+    )
+    assert updated_user.email == user_update_in.email
+
+@pytest.mark.asyncio
+async def test_update_user_by_userupdatepatch_schema(db: AsyncSession) -> None:
+    user_dict = random_user_dict()
+    new_user = await crud.user.create(db=db, user_in=user_dict)
+    user_update_in = UserUpdatePATCH(email=fake.free_email())
     updated_user = await crud.user.update(
         db=db, db_user=new_user, user_in=user_update_in
     )

@@ -172,11 +172,10 @@ async def test_when_getting_own_user_if_token_is_expired_must_return_403(
 
 @pytest.mark.asyncio
 async def test_when_getting_own_user_if_user_not_exist_must_return_404(
-    async_client: AsyncClient, db: AsyncSession
+    active_user: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
-    user = await crud.user.create(db=db, user_in=random_active_user_dict())
-    headers = get_user_token_headers(user)
-    await crud.user.delete_by_id(db=db, id=user.id)
+    headers = get_user_token_headers(active_user)
+    await crud.user.delete_by_id(db=db, id=active_user.id)
     response = await async_client.get(
         f"{settings.API_V1_STR}/users/me", headers=headers
     )

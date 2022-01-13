@@ -6,7 +6,6 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from app import crud, models, schemas
 from app.api import deps
-from app.schemas import token
 
 router = APIRouter()
 
@@ -34,7 +33,7 @@ async def create_user(
     "/me",
     response_model=schemas.User,
     status_code=status.HTTP_200_OK,
-    responses=deps.GET_TOKEN_USER_RESPONSES,
+    responses=deps.GET_TOKEN_USER_RESPONSES
 )
 async def get_current_user(
     token_user: models.User = Depends(deps.get_token_user),
@@ -49,13 +48,14 @@ async def get_current_user(
     responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
 )
 async def update_current_user(
-    user_in: schemas.UserUpdate,
+    user_in: schemas.UserUpdatePUT,
     token_user: models.User = Depends(deps.get_token_active_user),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
     Update your own user.\n
-    Note: If the email is updated, the user will be deactivated and the email will have to be re-verified. (Unless you are an admin)
+    Note: If the email is updated, the user will be deactivated and the email
+     will have to be re-verified. (Unless you are an admin)
     """
 
     if not token_user.is_superuser:
@@ -110,13 +110,14 @@ async def get_user_by_id(
 )
 async def update_user_by_id(
     user_id: int,
-    user_in: schemas.UserUpdate,
+    user_in: schemas.UserUpdatePUT,
     token_user: models.User = Depends(deps.get_token_active_user),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
     Update a user by id.\n
-    Note: If the email is updated, the user will be deactivated and the email will have to be re-verified. (Unless you are an admin)
+    Note: If the email is updated, the user will be deactivated and the email
+     will have to be re-verified. (Unless you are an admin)
     """
     if token_user.id == user_id:
 

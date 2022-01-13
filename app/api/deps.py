@@ -23,7 +23,8 @@ GET_TOKEN_ACTIVE_SUPERUSER_RESPONSES = GET_TOKEN_ACTIVE_USER_RESPONSES | {
     403: {"model": schemas.HTTPError}
 }
 
-# TODO: Make reusable_oauth2 more abstract to use in APIv1 and a possible APIv2, APIv3...
+# TODO: Make reusable_oauth2 more abstract to use
+# in APIv1 and a possible APIv2, APIv3...
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
 )

@@ -54,10 +54,12 @@ class CrudUser:
         self,
         db: AsyncSession,
         db_user: models.User,
-        user_in: Union[schemas.UserUpdate, Dict[str, Any]],
+        user_in: Union[schemas.UserUpdatePUT, schemas.UserUpdatePATCH, Dict[str, Any]],
     ) -> models.User:
         if isinstance(user_in, dict):
             update_data = user_in.copy()
+        elif isinstance(user_in, schemas.UserUpdatePUT):
+            update_data = user_in.dict()
         else:
             update_data = user_in.dict(exclude_unset=True)
         if update_data.get("password"):

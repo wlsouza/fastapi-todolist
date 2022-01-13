@@ -28,7 +28,7 @@ from app.tests.utils.user import (
 async def test_when_successfully_update_user_by_id_must_return_200(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"full_name": fake.name()}
+    payload = random_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{active_user.id}",
@@ -42,7 +42,7 @@ async def test_when_successfully_update_user_by_id_must_return_200(
 async def test_when_successfully_update_user_by_id_it_must_be_returned(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"full_name": fake.name()}
+    payload = random_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{active_user.id}",
@@ -59,7 +59,7 @@ async def test_when_updating_different_user_by_id_if_token_user_is_not_superuser
     target_user = await crud.user.create(
         db=db, user_in=random_active_user_dict()
     )
-    payload = {"full_name": fake.name()}
+    payload = random_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{target_user.id}",
@@ -124,12 +124,9 @@ async def test_when_updating_user_by_id_if_token_user_is_not_active_must_return_
 
 @pytest.mark.asyncio
 async def test_when_user_is_updated_if_email_is_changed_by_non_superuser_the_user_must_be_deactivated(
-    db: AsyncSession, async_client: AsyncClient
+    active_user: models.User, async_client: AsyncClient
 ) -> None:
-    active_user = await crud.user.create(
-        db=db, user_in=random_active_user_dict()
-    )
-    payload = random_user_dict()
+    payload = random_active_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{active_user.id}",
@@ -143,7 +140,7 @@ async def test_when_user_is_updated_if_email_is_changed_by_non_superuser_the_use
 async def test_when_user_is_updated_if_email_is_changed_by_superuser_the_user_must_continue_activate(
     async_client: AsyncClient, active_superuser: models.User
 ) -> None:
-    payload = random_user_dict()
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{active_superuser.id}",
@@ -157,15 +154,16 @@ async def test_when_user_is_updated_if_email_is_changed_by_superuser_the_user_mu
 async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_user_is_not_superuser_must_return_403(
     active_user: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
+    payload = random_active_user_dict()
     target_user = await crud.user.create(
-        db=db, user_in=random_active_user_dict()
+        db=db, user_in=payload
     )
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{target_user.id}",
         headers=headers,
-        json={},
+        json=payload,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -174,15 +172,16 @@ async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_us
 async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_user_is_superuser_must_return_404(
     active_superuser: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
+    payload = random_active_user_dict()
     target_user = await crud.user.create(
-        db=db, user_in=random_active_user_dict()
+        db=db, user_in=payload
     )
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{target_user.id}",
         headers=headers,
-        json={},
+        json=payload,
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -191,7 +190,7 @@ async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_us
 async def test_when_updating_user_to_superuser_if_token_user_is_not_superuser_must_return_403(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"is_superuser": True}
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{active_user.id}",
@@ -208,7 +207,7 @@ async def test_when_updating_user_to_superuser_if_token_user_is_superuser_must_r
     target_user = await crud.user.create(
         db=db, user_in=random_active_user_dict()
     )
-    payload = {"is_superuser": True}
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/{target_user.id}",
@@ -237,7 +236,7 @@ async def test_resource_users_me_must_accept_post_verb(
 async def test_when_own_user_is_updated_must_return_200(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"full_name": fake.name()}
+    payload = random_active_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload
@@ -249,7 +248,7 @@ async def test_when_own_user_is_updated_must_return_200(
 async def test_when_own_user_is_updated_it_must_be_returned(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"full_name": fake.name()}
+    payload = random_active_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload
@@ -259,11 +258,8 @@ async def test_when_own_user_is_updated_it_must_be_returned(
 
 @pytest.mark.asyncio
 async def test_when_own_user_is_updated_if_email_is_changed_by_non_superuser_the_user_must_be_deactivated(
-    db: AsyncSession, async_client: AsyncClient
+    active_user: models.User, async_client: AsyncClient
 ) -> None:
-    active_user = await crud.user.create(
-        db=db, user_in=random_active_user_dict()
-    )
     payload = random_user_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
@@ -276,7 +272,7 @@ async def test_when_own_user_is_updated_if_email_is_changed_by_non_superuser_the
 async def test_when_own_user_is_updated_if_email_is_changed_by_superuser_the_user_must_continue_activate(
     async_client: AsyncClient, active_superuser: models.User
 ) -> None:
-    payload = random_user_dict()
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload
@@ -328,11 +324,10 @@ async def test_when_updating_own_user_if_token_user_is_not_active_must_return_40
 
 @pytest.mark.asyncio
 async def test_when_updating_own_user_if_user_not_exist_must_return_404(
-    async_client: AsyncClient, db: AsyncSession
+    active_user: models.User, async_client: AsyncClient, db:AsyncSession
 ) -> None:
-    user = await crud.user.create(db=db, user_in=random_active_user_dict())
-    headers = get_user_token_headers(user)
-    await crud.user.delete_by_id(db=db, id=user.id)
+    headers = get_user_token_headers(active_user)
+    await crud.user.delete_by_id(db=db, id=active_user.id)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers
     )
@@ -343,7 +338,7 @@ async def test_when_updating_own_user_if_user_not_exist_must_return_404(
 async def test_when_updating_own_user_to_superuser_if_user_is_not_superuser_must_return_403(
     async_client: AsyncClient, active_user: models.User
 ) -> None:
-    payload = {"is_superuser": True}
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload
@@ -355,7 +350,7 @@ async def test_when_updating_own_user_to_superuser_if_user_is_not_superuser_must
 async def test_when_updating_own_user_to_superuser_if_user_is_superuser_must_return_200(
     async_client: AsyncClient, active_superuser: models.User
 ) -> None:
-    payload = {"is_superuser": True}
+    payload = random_active_superuser_dict()
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload

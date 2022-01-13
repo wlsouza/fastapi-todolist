@@ -11,6 +11,7 @@ from app.core.config import settings
 
 router = APIRouter()
 
+
 # TODO: Improve errors messages.
 @router.post(
     "/access-token",

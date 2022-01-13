@@ -9,9 +9,8 @@ from app.core.config import settings
 @celery_app.task
 def send_verification_email(email_to: str, first_name: str, token: str):
 
-    verification_link = (  # TODO: insert link to frontend page resolve it.
-        f"https://github.com/wlsouza/fastapi-todolist"
-    )
+    # TODO: insert link to frontend page resolve it.
+    verification_link = "https://github.com/wlsouza/fastapi-todolist"
 
     message = MessageSchema(
         subject="FastAPI-TodoList Email Verification",

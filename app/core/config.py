@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 from fastapi_mail import ConnectionConfig
-from pydantic import BaseSettings, PostgresDsn, validator
+from pydantic import BaseSettings, validator
 
 
 class Settings(BaseSettings):
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     )  # 60 min * 24 hrs * 2 days = 2 days
 
     # DB configs
-    PRODUCTION_DATABASE_URI: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/FASTAPI_TODOLIST"
+    PRODUCTION_DATABASE_URI: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/FASTAPI_TODOLIST"  # noqa
     TEST_DATABASE_URI: str = "sqlite+aiosqlite:///test.db"
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
