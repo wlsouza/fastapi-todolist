@@ -360,12 +360,6 @@ async def test_when_updating_own_user_to_superuser_if_user_is_superuser_must_ret
 
 # endregion
 
-# region delete own user - DELETE /users/me
-# endregion
-
-# region delete own user - DELETE /users/{user_id}
-# endregion
-
 # region send verification email - POST /users/{id}/verification -- talvez?
 # endregion
 
