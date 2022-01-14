@@ -11,8 +11,8 @@ from app.tests.utils.auth import (
     get_user_token_headers,
 )
 
-
 # region Create user - GET /users/{user_id}
+
 
 @pytest.mark.asyncio
 async def test_when_successfully_get_user_by_id_must_return_200(
@@ -125,9 +125,11 @@ async def test_when_getting_different_user_by_id_if_user_not_exist_and_token_use
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
+
 # endregion
 
 # region get own user - GET /users/me
+
 
 @pytest.mark.asyncio
 async def test_when_own_user_is_gotten_must_return_200(
@@ -180,5 +182,6 @@ async def test_when_getting_own_user_if_user_not_exist_must_return_404(
         f"{settings.API_V1_STR}/users/me", headers=headers
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
 
 # endregion

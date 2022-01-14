@@ -54,7 +54,9 @@ class CrudUser:
         self,
         db: AsyncSession,
         db_user: models.User,
-        user_in: Union[schemas.UserUpdatePUT, schemas.UserUpdatePATCH, Dict[str, Any]],
+        user_in: Union[
+            schemas.UserUpdatePUT, schemas.UserUpdatePATCH, Dict[str, Any]
+        ],
     ) -> models.User:
         if isinstance(user_in, dict):
             update_data = user_in.copy()

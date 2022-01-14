@@ -11,7 +11,7 @@ def random_user_dict() -> Dict[str, Union[str, int, bool]]:
         "email": fake.free_email(),
         "password": fake.password(length=12),
         "is_active": False,
-        "is_superuser": False
+        "is_superuser": False,
     }
     return user_dict
 

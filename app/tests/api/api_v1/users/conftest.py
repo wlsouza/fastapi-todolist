@@ -8,6 +8,7 @@ from app.tests.utils.user import (
     random_user_dict,
 )
 
+
 @pytest.fixture()
 async def active_user(db: AsyncSession) -> models.User:
     user_dict = random_active_user_dict()

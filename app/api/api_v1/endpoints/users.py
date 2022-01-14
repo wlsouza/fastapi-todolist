@@ -2,7 +2,6 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_404_NOT_FOUND
 
 from app import crud, models, schemas
 from app.api import deps
@@ -109,7 +108,8 @@ async def get_user_by_id(
     user = await crud.user.get_by_id(db=db, id=user_id)
     if not user:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
         )
     return user
 
@@ -159,9 +159,32 @@ async def update_user_by_id(
     db_user = await crud.user.get_by_id(db=db, id=user_id)
     if not db_user:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
         )
     updated_user = await crud.user.update(
         db=db, db_user=db_user, user_in=user_in
     )
     return updated_user
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.User,
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES
+)
+async def delete_user_by_id(
+    user_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    token_user: models.User = Depends(deps.get_token_active_user)
+):
+    if not token_user.is_superuser and token_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges",
+        )
+
+    deleted_user = await crud.user.delete_by_id(db=db, id=user_id)
+    return deleted_user
+

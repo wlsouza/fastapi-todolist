@@ -3,21 +3,12 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, models
+from app import crud
 from app.core.config import settings
-from app.tests.utils.auth import (
-    get_expired_user_token_headers,
-    get_user_token_headers,
-)
-from app.tests.utils.user import (
-    fake,
-    random_active_superuser_dict,
-    random_active_user_dict,
-    random_user_dict,
-)
-
+from app.tests.utils.user import random_user_dict
 
 # region create user - POST /users/
+
 
 @pytest.mark.asyncio
 async def test_resource_users_must_accept_post_verb(
@@ -69,5 +60,6 @@ async def test_when_creating_user_if_that_user_already_exist_returns_status_400(
         f"{settings.API_V1_STR}/users/", json=user_dict
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
 
 # endregion

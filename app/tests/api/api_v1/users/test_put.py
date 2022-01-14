@@ -10,16 +10,10 @@ from app.tests.utils.auth import (
     get_user_token_headers,
 )
 from app.tests.utils.user import (
-    fake,
     random_active_superuser_dict,
     random_active_user_dict,
     random_user_dict,
 )
-
-
-
-
-
 
 # region update user - PUT /users/{user_id}
 
@@ -50,6 +44,23 @@ async def test_when_successfully_update_user_by_id_it_must_be_returned(
         json=payload,
     )
     assert response.json().get("full_name") == payload.get("full_name")
+
+
+@pytest.mark.asyncio
+async def test_when_successfully_update_user_by_id_it_must_be_persisted(
+    async_client: AsyncClient, db: AsyncSession, active_user: models.User
+) -> None:
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_user)
+    await async_client.put(
+        f"{settings.API_V1_STR}/users/{active_user.id}",
+        headers=headers,
+        json=payload,
+    )
+    # It refresh the user in the session because the update was done in
+    # another session, so the object in memory of that session is out of date.
+    await db.refresh(active_user)
+    assert active_user.full_name == payload.get("full_name")
 
 
 @pytest.mark.asyncio
@@ -155,9 +166,7 @@ async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_us
     active_user: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
     payload = random_active_user_dict()
-    target_user = await crud.user.create(
-        db=db, user_in=payload
-    )
+    target_user = await crud.user.create(db=db, user_in=payload)
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_user)
     response = await async_client.put(
@@ -173,9 +182,7 @@ async def test_when_updating_different_user_by_id_if_user_not_exist_and_token_us
     active_superuser: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
     payload = random_active_user_dict()
-    target_user = await crud.user.create(
-        db=db, user_in=payload
-    )
+    target_user = await crud.user.create(db=db, user_in=payload)
     await crud.user.delete_by_id(db=db, id=target_user.id)
     headers = get_user_token_headers(active_superuser)
     response = await async_client.put(
@@ -220,7 +227,6 @@ async def test_when_updating_user_to_superuser_if_token_user_is_superuser_must_r
 # endregion
 
 
-
 # region update own user - PUT /users/me
 
 
@@ -254,6 +260,23 @@ async def test_when_own_user_is_updated_it_must_be_returned(
         f"{settings.API_V1_STR}/users/me", headers=headers, json=payload
     )
     assert response.json().get("full_name") == payload.get("full_name")
+
+
+@pytest.mark.asyncio
+async def test_when_successfully_update_own_user_it_must_be_persisted(
+    async_client: AsyncClient, db: AsyncSession, active_user: models.User
+) -> None:
+    payload = random_user_dict()
+    headers = get_user_token_headers(active_user)
+    await async_client.put(
+        f"{settings.API_V1_STR}/users/me",
+        headers=headers,
+        json=payload,
+    )
+    # It refresh the user in the session because the update was done in
+    # another session, so the object in memory of that session is out of date.
+    await db.refresh(active_user)
+    assert active_user.full_name == payload.get("full_name")
 
 
 @pytest.mark.asyncio
@@ -324,7 +347,7 @@ async def test_when_updating_own_user_if_token_user_is_not_active_must_return_40
 
 @pytest.mark.asyncio
 async def test_when_updating_own_user_if_user_not_exist_must_return_404(
-    active_user: models.User, async_client: AsyncClient, db:AsyncSession
+    active_user: models.User, async_client: AsyncClient, db: AsyncSession
 ) -> None:
     headers = get_user_token_headers(active_user)
     await crud.user.delete_by_id(db=db, id=active_user.id)

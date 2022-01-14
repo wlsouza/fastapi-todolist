@@ -15,6 +15,7 @@ class UserCreate(UserBase):
     email: EmailStr
     password: str
 
+
 # Properties to receive via API on update -- PATCH (allows not filling all fields)
 class UserUpdatePATCH(UserBase):
     password: Optional[str] = None
@@ -24,16 +25,18 @@ class UserUpdatePATCH(UserBase):
     class Config:
         extra = "forbid"
 
+
 # Properties to receive via API on update -- PUT (force fill all fields)
 class UserUpdatePUT(UserBase):
     full_name: str
     email: EmailStr
-    password: str 
+    password: str
     is_active: bool
     is_superuser: bool
 
     class Config:
         extra = "forbid"
+
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):

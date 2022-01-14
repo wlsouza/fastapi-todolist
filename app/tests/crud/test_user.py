@@ -2,8 +2,12 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
-from app.schemas.user import UserCreate, UserUpdatePUT, UserUpdatePATCH
-from app.tests.utils.user import fake, random_user_dict, random_active_superuser_dict
+from app.schemas.user import UserCreate, UserUpdatePATCH, UserUpdatePUT
+from app.tests.utils.user import (
+    fake,
+    random_active_superuser_dict,
+    random_user_dict,
+)
 
 
 @pytest.mark.asyncio
@@ -85,6 +89,7 @@ async def test_update_user_by_userupdateput_schema(db: AsyncSession) -> None:
         db=db, db_user=new_user, user_in=user_update_in
     )
     assert updated_user.email == user_update_in.email
+
 
 @pytest.mark.asyncio
 async def test_update_user_by_userupdatepatch_schema(db: AsyncSession) -> None:
