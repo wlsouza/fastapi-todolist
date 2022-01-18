@@ -1,10 +1,12 @@
-from pydantic import BaseModel, Field
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 # Shared properties
 class TaskBase(BaseModel):
-    title: str = Field(min_length=3, max_length=50)
-    description: str = Field(max_length=140)
+    title: str
+    description: str 
     is_done: bool
 
 
@@ -12,11 +14,26 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     pass
 
+# Properties to receive via API on update -- PATCH (allows not filling all fields)
+class TaskUpdatePATCH(TaskBase):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    is_done: bool = False
+    owner_id: Optional[int] = None
 
-# Properties to receive on item update
-class TaskUpdate(TaskBase):
-    pass
+    class Config:
+        extra = "forbid"
 
+
+# Properties to receive via API on update -- PUT (force fill all fields)
+class TaskUpdatePUT(TaskBase):
+    title: str
+    description: str
+    is_done: bool
+    owner_id: int
+
+    class Config:
+        extra = "forbid"
 
 # Properties shared by models stored in DB
 class TaskInDBBase:

@@ -4,7 +4,6 @@ from faker import Faker
 
 fake = Faker()
 
-
 def random_user_dict() -> Dict[str, Union[str, int, bool]]:
     user_dict = {
         "full_name": fake.name(),
