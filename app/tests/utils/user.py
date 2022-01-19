@@ -1,8 +1,12 @@
 from typing import Dict, Union
 
 from faker import Faker
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app import crud, models
 
 fake = Faker()
+
 
 def random_user_dict() -> Dict[str, Union[str, int, bool]]:
     user_dict = {

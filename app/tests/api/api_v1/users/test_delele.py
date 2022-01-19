@@ -13,6 +13,7 @@ from app.tests.utils.user import random_active_user_dict
 
 # region delete own user - DELETE /users/me
 
+
 @pytest.mark.asyncio
 async def test_resource_users_me_must_accept_delete_verb(
     async_client: AsyncClient,

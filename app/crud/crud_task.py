@@ -23,10 +23,21 @@ class CrudTask:
         )
         return result.scalars().all()
 
+    async def get_multi_by_owner_id(
+        self, db: AsyncSession, owner_id: int, skip: int = 0, limit: int = 100
+    ) -> Optional[List[models.Task]]:
+        result = await db.execute(
+            select(models.Task)
+            .where(models.Task.owner_id == owner_id)
+            .offset(skip)
+            .limit(limit)
+        )
+        return result.scalars().all()
+
     async def create(
         self,
         db: AsyncSession,
-        task_in: Union[schemas.TaskCreate, Dict[str, Any]]
+        task_in: Union[schemas.TaskCreate, Dict[str, Any]],
     ) -> models.Task:
         if isinstance(task_in, dict):
             task_data = task_in.copy()

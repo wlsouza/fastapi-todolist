@@ -32,7 +32,7 @@ async def create_user(
     "/me",
     response_model=schemas.User,
     status_code=status.HTTP_200_OK,
-    responses=deps.GET_TOKEN_USER_RESPONSES
+    responses=deps.GET_TOKEN_USER_RESPONSES,
 )
 async def get_current_user(
     token_user: models.User = Depends(deps.get_token_user),
@@ -72,18 +72,20 @@ async def update_current_user(
     user = await crud.user.update(db=db, db_user=token_user, user_in=user_in)
     return user
 
+
 @router.delete(
     "/me",
     response_model=schemas.User,
     status_code=status.HTTP_200_OK,
-    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
 )
 async def delete_current_user(
     token_user: models.User = Depends(deps.get_token_active_user),
-    db: AsyncSession = Depends(deps.get_db)
+    db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     await crud.user.delete_by_id(db=db, id=token_user.id)
     return token_user
+
 
 @router.get(
     "/{user_id}",
@@ -108,8 +110,7 @@ async def get_user_by_id(
     user = await crud.user.get_by_id(db=db, id=user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
 
@@ -159,8 +160,7 @@ async def update_user_by_id(
     db_user = await crud.user.get_by_id(db=db, id=user_id)
     if not db_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     updated_user = await crud.user.update(
         db=db, db_user=db_user, user_in=user_in
@@ -172,12 +172,12 @@ async def update_user_by_id(
     "/{user_id}",
     status_code=status.HTTP_200_OK,
     response_model=schemas.User,
-    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
 )
 async def delete_user_by_id(
     user_id: int,
     db: AsyncSession = Depends(deps.get_db),
-    token_user: models.User = Depends(deps.get_token_active_user)
+    token_user: models.User = Depends(deps.get_token_active_user),
 ):
     if not token_user.is_superuser and token_user.id != user_id:
         raise HTTPException(
@@ -187,4 +187,3 @@ async def delete_user_by_id(
 
     deleted_user = await crud.user.delete_by_id(db=db, id=user_id)
     return deleted_user
-

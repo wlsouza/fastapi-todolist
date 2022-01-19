@@ -1,48 +1,70 @@
-from typing import Any
+from typing import Any, List
 
-from fastapi import APIRouter, Depends,HTTPException, status, Body
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import schemas, models, crud
+from app import crud, models, schemas
 from app.api import deps
 
 router = APIRouter()
 
 
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=List[schemas.Task],
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
+)
+async def get_tasks(
+    skip: int = 0,
+    limit: int = 100,
+    token_user: models.User = Depends(deps.get_token_active_user),
+    db: AsyncSession = Depends(deps.get_db),
+) -> Any:
+    if not token_user.is_superuser:
+        # return own user tasks
+        return await crud.task.get_multi_by_owner_id(
+            db=db, owner_id=token_user.id, skip=skip, limit=limit
+        )
+    # return all tasks
+    tasks = await crud.task.get_multi(db=db, skip=skip, limit=limit)
+    return tasks
+
+
 @router.post(
-    "/", 
+    "/",
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.Task,
-    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
 )
 async def create_task(
     task_in: schemas.TaskCreate = Body(
-        ..., 
-        examples=schemas.task.TASKCREATE_EXAMPLES
+        ..., examples=schemas.task.TASKCREATE_EXAMPLES
     ),
     token_user: models.User = Depends(deps.get_token_active_user),
-    db: AsyncSession = Depends(deps.get_db)
+    db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
+    # when the user is not specified the task is generated for the requestor.
     if not task_in.owner_id:
         task_in.owner_id = token_user.id
 
     if task_in.owner_id == token_user.id:
         task = await crud.task.create(db=db, task_in=task_in)
         return task
-
+    # tasks for other users can only be registered by a superuser.
     if not token_user.is_superuser:
         raise HTTPException(
-            status_code = status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges",
         )
 
     user = await crud.user.get_by_id(db=db, id=task_in.owner_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Owner user not found"
+            detail="Owner user not found",
         )
-    
+
     task = await crud.task.create(db=db, task_in=task_in)
     return task
 

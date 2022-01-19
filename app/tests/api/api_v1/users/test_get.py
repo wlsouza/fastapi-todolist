@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models
 from app.core.config import settings
-from app.tests.utils.user import random_active_user_dict
 from app.tests.utils.auth import (
     get_expired_user_token_headers,
     get_user_token_headers,
 )
+from app.tests.utils.user import random_active_user_dict
 
 # region Create user - GET /users/{user_id}
 
