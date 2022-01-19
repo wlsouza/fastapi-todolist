@@ -46,7 +46,7 @@ async def test_if_delete_by_id_really_delete_the_task(db: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_update_user_by_taskupdateput_schema(db: AsyncSession) -> None:
+async def test_update_task_by_taskupdateput_schema(db: AsyncSession) -> None:
     task_dict = random_task_dict()
     new_task = await crud.task.create(db=db, task_in=task_dict)
     task_update_in = schemas.TaskUpdatePUT(**random_task_dict(), owner_id = 0)
@@ -57,7 +57,7 @@ async def test_update_user_by_taskupdateput_schema(db: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_user_by_taskupdatepatch_schema(db: AsyncSession) -> None:
+async def test_update_task_by_taskupdatepatch_schema(db: AsyncSession) -> None:
     task_dict = random_task_dict()
     new_task = await crud.task.create(db=db, task_in=task_dict)
     task_update_in = schemas.TaskUpdatePATCH(**random_task_dict())
