@@ -184,6 +184,10 @@ async def delete_user_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges",
         )
-
     deleted_user = await crud.user.delete_by_id(db=db, id=user_id)
+    if not deleted_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user doesn't have enough privileges",
+        )
     return deleted_user

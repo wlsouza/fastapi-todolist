@@ -78,6 +78,8 @@ class CrudUser:
         self, db: AsyncSession, id: Union[int, str]
     ) -> Optional[models.User]:
         user = await self.get_by_id(db=db, id=id)
+        if not user:
+            return None
         await db.delete(user)
         await db.commit()
         return user

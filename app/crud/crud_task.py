@@ -74,6 +74,8 @@ class CrudTask:
         self, db: AsyncSession, id: Union[int, str]
     ) -> Optional[models.Task]:
         task = await self.get_by_id(db=db, id=id)
+        if not task:
+            return None
         await db.delete(task)
         await db.commit()
         return task

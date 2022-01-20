@@ -195,4 +195,34 @@ async def test_when_deleting_user_by_id_if_token_user_is_not_active_must_return_
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.asyncio
+async def test_when_deleting_different_user_by_id_if_task_not_exist_and_token_user_is_not_superuser_must_return_403(
+    active_user: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    target_user = await crud.user.create(
+        db=db, user_in=random_active_user_dict()
+    )
+    await crud.user.delete_by_id(db=db, id=target_user.id)
+    headers = get_user_token_headers(active_user)
+    response = await async_client.delete(
+        f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_when_deleting_different_user_by_id_if_task_not_exist_and_token_user_is_superuser_must_return_404(
+    active_superuser: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    target_user = await crud.user.create(
+        db=db, user_in=random_active_user_dict()
+    )
+    await crud.user.delete_by_id(db=db, id=target_user.id)
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.delete(
+        f"{settings.API_V1_STR}/users/{target_user.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
 # endregion
