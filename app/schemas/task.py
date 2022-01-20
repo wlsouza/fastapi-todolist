@@ -15,7 +15,7 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     owner_id: Optional[int]
 
-    # OpenAPI does not support this way of declaring examples yet, for more
+    # Swagger UI does not support this way of declaring examples yet, for more
     # information read the following documentation
     # https://fastapi.tiangolo.com/tutorial/schema-extra-example/
     # class Config:

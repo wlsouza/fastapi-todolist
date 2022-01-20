@@ -137,3 +137,94 @@ async def test_when_getting_tasks_if_skip_the_correct_quantity_of_tasks(
 
 
 # endregion
+
+# region get tasks by id - GET /tasks/{task_id}
+
+
+@pytest.mark.asyncio
+async def test_when_get_tasks_by_id_must_return_200(
+    db: AsyncSession, async_client: AsyncClient, active_user: models.User
+) -> None:
+    task = await create_random_task_in_db(db=db, owner_user=active_user)
+    headers = get_user_token_headers(active_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.asyncio
+async def test_when_get_tasks_by_id_it_must_be_returned(
+    async_client: AsyncClient, active_user: models.User, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(
+        db=db, owner_user=active_user
+    )
+    headers = get_user_token_headers(active_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.json().get("id") == created_task.id
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_by_id_of_another_user_if_token_user_is_superuser_must_return_200(
+    active_superuser: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(db=db)
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_by_id_of_another_user_if_token_user_is_not_superuser_must_return_403(
+    active_user: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(db=db)
+    headers = get_user_token_headers(active_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_by_id_if_token_user_is_not_authenticated_must_return_401(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.get(f"{settings.API_V1_STR}/tasks/1")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_if_token_is_expired_must_return_403(
+    async_client: AsyncClient, active_user: models.User, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(
+        db=db, owner_user=active_user
+    )
+    headers = get_expired_user_token_headers(active_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_if_token_user_is_not_active_must_return_403(
+    async_client: AsyncClient, inactive_user: models.User, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(
+        db=db, owner_user=inactive_user
+    )
+    headers = get_user_token_headers(inactive_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+# endregion

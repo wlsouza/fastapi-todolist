@@ -69,10 +69,38 @@ async def create_task(
     return task
 
 
-# @router.get("/tasks", response_model=list[schemas.Task])
-# def list_tasks() -> Any:
-#     TASKS.sort(reverse=True, key=lambda x: x["state"])
-#     return TASKS
+@router.get(
+    "/{task_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.Task,
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
+)
+async def get_task_by_id(
+    task_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    token_user: models.User = Depends(deps.get_token_active_user),
+):
+    task = await crud.task.get_by_id(db=db, id=task_id)
+    if not task:
+        # returns error according to user privileges
+        if not token_user.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="The user doesn't have enough privileges",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
+    # own user task
+    if task.owner_id == token_user.id:
+        return task
+    # another user task
+    if not token_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges",
+        )
+    return task
 
 
 # @router.delete(
@@ -99,13 +127,3 @@ async def create_task(
 #     for attribute, value in received_task:
 #         updated_task[attribute] = value
 #     return updated_task
-
-
-# @router.get("/tasks/{id}")
-# def get_task_id(id: UUID4):
-#     task = list(filter(lambda x: x.get("id") == id, TASKS))
-#     if not task:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
-#         )
-#     return task[0]
