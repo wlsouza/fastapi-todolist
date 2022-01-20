@@ -3,7 +3,7 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import models
+from app import crud, models
 from app.core.config import settings
 from app.tests.utils.auth import (
     get_expired_user_token_headers,
@@ -200,7 +200,7 @@ async def test_when_getting_tasks_by_id_if_token_user_is_not_authenticated_must_
 
 
 @pytest.mark.asyncio
-async def test_when_getting_tasks_if_token_is_expired_must_return_403(
+async def test_when_getting_tasks_by_id_if_token_is_expired_must_return_403(
     async_client: AsyncClient, active_user: models.User, db: AsyncSession
 ) -> None:
     created_task = await create_random_task_in_db(
@@ -214,7 +214,7 @@ async def test_when_getting_tasks_if_token_is_expired_must_return_403(
 
 
 @pytest.mark.asyncio
-async def test_when_getting_tasks_if_token_user_is_not_active_must_return_403(
+async def test_when_getting_tasks_by_id_if_token_user_is_not_active_must_return_403(
     async_client: AsyncClient, inactive_user: models.User, db: AsyncSession
 ) -> None:
     created_task = await create_random_task_in_db(
@@ -225,6 +225,32 @@ async def test_when_getting_tasks_if_token_user_is_not_active_must_return_403(
         f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_by_id_of_another_user_if_task_not_exist_and_token_user_is_not_superuser_must_return_403(
+    active_user: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(db=db)
+    await crud.task.delete_by_id(db=db, id=created_task.id)
+    headers = get_user_token_headers(active_user)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_when_getting_tasks_by_id_of_another_user_if_task_not_exist_and_token_user_is_superuser_must_return_404(
+    active_superuser: models.User, async_client: AsyncClient, db: AsyncSession
+) -> None:
+    created_task = await create_random_task_in_db(db=db)
+    await crud.task.delete_by_id(db=db, id=created_task.id)
+    headers = get_user_token_headers(active_superuser)
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/tasks/{created_task.id}", headers=headers
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 # endregion

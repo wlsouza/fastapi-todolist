@@ -79,7 +79,7 @@ async def get_task_by_id(
     task_id: int,
     db: AsyncSession = Depends(deps.get_db),
     token_user: models.User = Depends(deps.get_token_active_user),
-):
+) -> Any:
     task = await crud.task.get_by_id(db=db, id=task_id)
     if not task:
         # returns error according to user privileges
@@ -91,11 +91,8 @@ async def get_task_by_id(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
         )
-    # own user task
-    if task.owner_id == token_user.id:
-        return task
-    # another user task
-    if not token_user.is_superuser:
+    if not token_user.is_superuser and task.owner_id != token_user.id:
+        # another user task
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges",
@@ -103,17 +100,36 @@ async def get_task_by_id(
     return task
 
 
-# @router.delete(
-#     "/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT
-# )  # , responses= {status.HTTP_404_NOT_FOUND:{"detail": "Task not found"}})
-# def delete_task(id: UUID4):
-#     task = list(filter(lambda x: x.get("id") == id, TASKS))
-#     if not task:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
-#         )
-#     TASKS.remove(task[0])
-#     return None
+@router.delete(
+    "/{task_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.Task,
+    responses=deps.GET_TOKEN_ACTIVE_USER_RESPONSES,
+)
+async def delete_task(
+    task_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    token_user: models.User = Depends(deps.get_token_active_user),
+) -> Any:
+    task = await crud.task.get_by_id(db=db, id=task_id)
+    if not task:
+        # returns error according to user privileges
+        if not token_user.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="The user doesn't have enough privileges",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
+    if not token_user.is_superuser and task.owner_id != token_user.id:
+        # another user task
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges",
+        )
+    await crud.task.delete_by_id(db=db, id=task_id)
+    return task
 
 
 # @router.put("/tasks/{id}", response_model=schemas.Task)
